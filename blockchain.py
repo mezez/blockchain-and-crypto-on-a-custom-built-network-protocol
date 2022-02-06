@@ -2,6 +2,7 @@
 import json
 import sys
 import hashlib
+from collections import OrderedDict
 
 MINING_REWARD = 10  # CHEESECOIN
 
@@ -41,7 +42,10 @@ def hash_cheese(cheese):
     :param cheese: a single unit of the cheesechain
     :return: string hash value representing the cheese
     """
-    return hashlib.sha256(json.dumps(cheese).encode()).hexdigest()
+    return hashlib.sha256(json.dumps(cheese, sort_keys=True).encode()).hexdigest()
+    # order the keys of the cheese and generate hash,
+    # this ensures consistency the output hash generated,
+    # preventing issues with reording of keys in the dictionary
 
 
 def get_balance(participant):
@@ -98,7 +102,10 @@ def add_transaction(recipient, sender=owner, amount=1.0):
     :param amount: amount of cheesecoins sent in the transaction, default value 1.0
     :return: boolean
     """
-    transaction = {'sender': sender, 'recipient': recipient, 'amount': amount}
+    #transaction = {'sender': sender, 'recipient': recipient, 'amount': amount}
+    #replace with ordered dictionary
+
+    transaction = OrderedDict([('sender', sender), ('recipient', recipient), ('amount', amount)])
     if verify_transaction(transaction):  # confirm that there is enough money in sender's account
         open_transactions.append(transaction)
         participants.add(sender)
@@ -113,11 +120,16 @@ def mine_cheese():
     parent_smell = hash_cheese(last_cheese)
     nonce = proof_of_work()
 
-    reward_transaction = {
-        'sender': 'CHEESECHAIN REWARD SYSTEM',
-        'recipient': owner,
-        'amount': MINING_REWARD
-    }
+    # reward_transaction = {
+    #     'sender': 'CHEESECHAIN REWARD SYSTEM',
+    #     'recipient': owner,
+    #     'amount': MINING_REWARD
+    # }
+
+    #use ordered dictionary instead
+    reward_transaction = OrderedDict([
+        ('sender', 'CHEESECHAIN REWARD SYSTEM'), ('recipient', owner), ('amount', MINING_REWARD)
+    ])
 
     # ensure that rewards are only added if mining is successful
     # reward transactions will not appear in the global open transactions if mining is unsuccessful
