@@ -7,30 +7,31 @@ MINING_REWARD = 10  # CHEESECOIN
 
 open_transactions = []
 cheesechain = []
-raclette_cheese = {'previous_smell': '', 'sequence_number': 0, 'transactions': []}
+raclette_cheese = {'previous_smell': '', 'sequence_number': 0, 'transactions': [], 'nonce': 100}
 cheesechain.append(raclette_cheese)
 owner = 'Mez'
 participants = {'Mez'}
 VALID_HASH_CONDITION = '00'
 
 
-def valid_proof(transactions, last_hash, proof):
+def valid_proof(transactions, parent_smell, nonce):
     # guess a new hash
-    guess = (str(transactions) + str(last_hash) + str(proof)).encode()
-    guess_hash = hashlib.sha256(guess).hexdigest()
-    print(guess_hash)
+    guess = (str(transactions) + str(parent_smell) + str(nonce)).encode()
+    guess_smell = hashlib.sha256(guess).hexdigest()
+    print(guess_smell)
     # check if guess hash stars with 2 leading zeros
-    return guess_hash[0:2] == VALID_HASH_CONDITION
+    return guess_smell[0:2] == VALID_HASH_CONDITION
 
 
 def proof_of_work():
     last_cheese = cheesechain[-1]
-    last_hash = hash_cheese(last_cheese)
+    parent_smell = hash_cheese(last_cheese)
     nonce = 0
     _valid_proof = False
     while not _valid_proof:  # execute until valid proof is true
-        _valid_proof = valid_proof(open_transactions, last_hash, nonce)
-        nonce += 1
+        _valid_proof = valid_proof(open_transactions, parent_smell, nonce)
+        if not _valid_proof:
+            nonce += 1
     return nonce
 
 
@@ -109,28 +110,22 @@ def add_transaction(recipient, sender=owner, amount=1.0):
 def mine_cheese():
     last_cheese = cheesechain[-1]  # last cheese in the chain
 
-    # method one :for loop
-    # parent_smell = ''
-    # for key in last_cheese:
-    #     value = last_cheese[key]
-    #     parent_smell = parent_smell + str(value)
-
-    # method two :list comprehension
     parent_smell = hash_cheese(last_cheese)
+    nonce = proof_of_work()
 
     reward_transaction = {
         'sender': 'CHEESECHAIN REWARD SYSTEM',
         'recipient': owner,
-        'amount': MINING_REWARD,
+        'amount': MINING_REWARD
     }
 
-    # ensure that rewards are only added if mining is successfuly
+    # ensure that rewards are only added if mining is successful
     # reward transactions will not appear in the global open transactions if mining is unsuccessful
     copied_transactions = open_transactions[:]
     copied_transactions.append(reward_transaction)
 
     open_transactions.append(reward_transaction)
-    cheese = {'previous_smell': parent_smell, 'sequence_number': len(cheesechain), 'transactions': copied_transactions}
+    cheese = {'previous_smell': parent_smell, 'sequence_number': len(cheesechain), 'transactions': copied_transactions, 'nonce': nonce}
     cheesechain.append(cheese)
     return True
 
@@ -165,17 +160,24 @@ def print_cheesechain_elements():
         print("-" * 20)
 
 
-# proof of work
 def verify_chain():
-    is_valid = True
+    """confirm validity of the current cheesechain. returns true for a valid chain and false for an invalid one"""
     for (index, cheese) in enumerate(
             cheesechain):  # enumerate returns a tuple with the index of an element and the element itself
         if index == 0:
             # first element
             continue
+        """comparing the previous hash/smell of the current cheese with a recalculated hash of the cheese preceding this cheese. 
+                    if the previous cheese was manipulated..."""
         if cheese['previous_smell'] != hash_cheese(cheesechain[index - 1]):
-            """comparing the previous hash of the current cheese with a recalculated hash of the cheese preceding this cheese. 
-            if the previous cheese was manipulated..."""
+            return False
+        """confirm that the the previous hash/smell in the of a cheese in the cheese chain was generated using the accepted algorithm of this system.
+            So we will be able to generate a hash that meets the defined valid hash condition with the previous hash, nonce and open transactions provided
+        """
+        if not valid_proof(cheese['transactions'][:-1], cheese['previous_smell'], cheese['nonce']): #select all parts of the list except the reward transaction
+            print('Invalid proof of work - verify')
+            print(index)
+            print(cheese)
             return False
 
     return True
