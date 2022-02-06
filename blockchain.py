@@ -6,6 +6,7 @@ from collections import OrderedDict
 
 from utils.hash_util import hash_cheese, hash_string_sha256
 from cheese import Cheese
+from transaction import Transaction
 
 MINING_REWARD = 10  # CHEESECOIN
 
@@ -45,11 +46,7 @@ def load_data():
             formatted_cheesechain = []
             for cheese in cheesechain:
                 # note: block content ordering does not matter here since they are ordered by keys in hashing function
-                formatted_tx = [OrderedDict([
-                        ('sender', transaction['sender']),
-                        ('recipient', transaction['recipient']),
-                        ('amount', transaction['amount'])
-                    ]) for transaction in cheese['transactions']]
+                formatted_tx = [Transaction(transaction['sender'], transaction['recipient'], transaction['amount']) for transaction in cheese['transactions']]
 
                 formatted_cheese = Cheese(cheese['sequence_number'], cheese['parent_smell'], formatted_tx, cheese['nonce'], cheese['timestamp'])
 
@@ -59,11 +56,7 @@ def load_data():
             open_transactions = json.loads(file_contents[1])  # first line is the cheesechain
             formatted_transactions = []
             for transaction in open_transactions:
-                formatted_transaction = OrderedDict([
-                    ('sender', transaction['sender']),
-                    ('recipient', transaction['recipient']),
-                    ('amount', transaction['amount'])
-                ])
+                formatted_transaction = [Transaction(transaction['sender'], transaction['recipient'], transaction['amount'])]
                 formatted_transactions.append(formatted_transaction)
             open_transactions = formatted_transactions
     except IOError:
@@ -79,17 +72,21 @@ load_data()
 def save_data():
     try:
         with open(CHEESECHAIN_FILE, mode='w') as file:
-            saveable_chain = [cheese.__dict__ for cheese in cheesechain]
-            file.write(json.dumps(saveable_chain))
+            # convert the cheesechain object into a dictionary that can be parsed to json
+            # this also involves a nested conversion of the transactions list of objects into a list of dictionaries
+            save_able_chain = [cheese.__dict__ for cheese in [Cheese(ch.sequence_number, ch.parent_smell, [tr.__dict__ for tr in ch.transactions], ch.nonce, ch.timestamp) for ch in cheesechain]]
+            file.write(json.dumps(save_able_chain))
             file.write('\n')
-            file.write(json.dumps(open_transactions))
+            # convert the list of transactions object into a list of transactions dictionary to be able to parse to json
+            save_able_tr = [tr.__dict__ for tr in open_transactions]
+            file.write(json.dumps(save_able_tr))
     except IOError:
         print('Data could not be saved')
 
 
 def valid_proof(transactions, parent_smell, nonce):
     # guess a new hash
-    guess = (str(transactions) + str(parent_smell) + str(nonce)).encode()
+    guess = (str([tr.to_ordered_dictionary() for tr in transactions]) + str(parent_smell) + str(nonce)).encode()
     guess_smell = hash_string_sha256(guess)
     print(guess_smell)
     # check if guess hash stars with 2 leading zeros
@@ -114,16 +111,16 @@ def get_balance(participant):
     :param participant: a person involved in a transaction
     :return: a float cumulative cheesecoin balance of the participant
     """
-    tx_sender = [[tx['amount'] for tx in cheese.transactions if tx['sender'] == participant] for cheese in
+    tx_sender = [[tx.amount for tx in cheese.transactions if tx.sender == participant] for cheese in
                  cheesechain]
     # get all the transaction amount sent by user, waiting to be mined in open transactions queue
-    open_tx_sender = [tx['amount'] for tx in open_transactions if tx['sender'] == participant]
+    open_tx_sender = [tx.amount for tx in open_transactions if tx.sender == participant]
     tx_sender.append(open_tx_sender)
     amount_sent = 0
     for tx in tx_sender:
         if len(tx) > 0:
             amount_sent += tx[0]
-    tx_recipient = [[tx['amount'] for tx in cheese.transactions if tx['recipient'] == participant] for cheese in
+    tx_recipient = [[tx.amount for tx in cheese.transactions if tx.recipient == participant] for cheese in
                     cheesechain]
     amount_received = 0
     for tx in tx_recipient:
@@ -148,8 +145,8 @@ def verify_transaction(transaction):
     :param transaction: a dictionary containing transaction details
     :return: confirm that sender has enough balance to carry out a transaction
     """
-    sender_balance = get_balance(transaction['sender'])
-    if sender_balance >= transaction['amount']:
+    sender_balance = get_balance(transaction.sender)
+    if sender_balance >= transaction.amount:
         return True
     return False
 
@@ -165,11 +162,9 @@ def add_transaction(recipient, sender=owner, amount=1.0):
     # transaction = {'sender': sender, 'recipient': recipient, 'amount': amount}
     # replace with ordered dictionary
 
-    transaction = OrderedDict([('sender', sender), ('recipient', recipient), ('amount', amount)])
+    transaction = Transaction(sender, recipient, amount)
     if verify_transaction(transaction):  # confirm that there is enough money in sender's account
         open_transactions.append(transaction)
-        participants.add(sender)
-        participants.add(recipient)
         save_data()
         return True
     return False
@@ -189,9 +184,7 @@ def mine_cheese():
 
     # use ordered dictionary instead
     # Rewards are only added if mining is successful
-    reward_transaction = OrderedDict([
-        ('sender', 'CHEESECHAIN REWARD SYSTEM'), ('recipient', owner), ('amount', MINING_REWARD)
-    ])
+    reward_transaction = Transaction('CHEESECHAIN REWARD SYSTEM', owner, MINING_REWARD)
 
     # reward transactions will not appear in the global open transactions
     # if for some reason, the mining failed, so a copy is made

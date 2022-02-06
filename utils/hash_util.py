@@ -16,6 +16,8 @@ def hash_cheese(cheese):
     :return: string hash value representing the cheese
     """
     hashable_cheese = cheese.__dict__.copy()
+    #convert transaction objects to json serializable format instead of it's current object state
+    hashable_cheese['transactions'] = [tr.to_ordered_dictionary() for tr in hashable_cheese['transactions']]
     return hash_string_sha256(json.dumps(hashable_cheese, sort_keys=True).encode())
     # order the keys of the cheese and generate hash,
     # this ensures consistency the output hash generated,
