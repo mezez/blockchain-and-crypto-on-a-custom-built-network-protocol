@@ -1,12 +1,11 @@
 # initialize cheesechain list
 import json
 import sys
-import hashlib
-from collections import OrderedDict
 
-from utils.hash_util import hash_cheese, hash_string_sha256
+from utils.hash_util import hash_cheese
 from cheese import Cheese
 from transaction import Transaction
+from verification import Verification
 
 MINING_REWARD = 10  # CHEESECOIN
 
@@ -14,7 +13,6 @@ open_transactions = []
 cheesechain = []
 
 owner = 'Mez'
-participants = {'Mez'}
 VALID_HASH_CONDITION = '00'
 CHEESECHAIN_FILE = 'cheesechain.txt'
 
@@ -84,22 +82,14 @@ def save_data():
         print('Data could not be saved')
 
 
-def valid_proof(transactions, parent_smell, nonce):
-    # guess a new hash
-    guess = (str([tr.to_ordered_dictionary() for tr in transactions]) + str(parent_smell) + str(nonce)).encode()
-    guess_smell = hash_string_sha256(guess)
-    print(guess_smell)
-    # check if guess hash stars with 2 leading zeros
-    return guess_smell[0:2] == VALID_HASH_CONDITION
-
-
 def proof_of_work():
     last_cheese = cheesechain[-1]
     parent_smell = hash_cheese(last_cheese)
     nonce = 0
     _valid_proof = False
     while not _valid_proof:  # execute until valid proof is true
-        _valid_proof = valid_proof(open_transactions, parent_smell, nonce)
+        verifier = Verification()
+        _valid_proof = verifier.valid_proof(open_transactions, parent_smell, nonce)
         if not _valid_proof:
             nonce += 1
     return nonce
@@ -139,18 +129,6 @@ def get_last_cheese_chain_value():
     return cheesechain[-1]
 
 
-def verify_transaction(transaction):
-    """
-
-    :param transaction: a dictionary containing transaction details
-    :return: confirm that sender has enough balance to carry out a transaction
-    """
-    sender_balance = get_balance(transaction.sender)
-    if sender_balance >= transaction.amount:
-        return True
-    return False
-
-
 def add_transaction(recipient, sender=owner, amount=1.0):
     """
 
@@ -163,7 +141,8 @@ def add_transaction(recipient, sender=owner, amount=1.0):
     # replace with ordered dictionary
 
     transaction = Transaction(sender, recipient, amount)
-    if verify_transaction(transaction):  # confirm that there is enough money in sender's account
+    verifier = Verification()
+    if verifier.verify_transaction(transaction, get_balance):  # confirm that there is enough money in sender's account
         open_transactions.append(transaction)
         save_data()
         return True
@@ -226,42 +205,6 @@ def print_cheesechain_elements():
         print("-" * 20)
 
 
-def verify_chain():
-    """confirm validity of the current cheesechain. returns true for a valid chain and false for an invalid one"""
-    for (index, cheese) in enumerate(
-            cheesechain):  # enumerate returns a tuple with the index of an element and the element itself
-        if index == 0:
-            # first element
-            continue
-        """comparing the previous hash/smell of the current cheese with a recalculated hash of the cheese preceding this cheese. 
-                    if the previous cheese was manipulated..."""
-        if cheese.parent_smell != hash_cheese(cheesechain[index - 1]):
-            return False
-        """confirm that the the previous hash/smell in the of a cheese in the cheese chain was generated using the accepted algorithm of this system.
-            So we will be able to generate a hash that meets the defined valid hash condition with the previous hash, nonce and open transactions provided
-        """
-        if not valid_proof(cheese.transactions[:-1], cheese.parent_smell,
-                           cheese.nonce):  # select all parts of the list except the reward transaction
-            print('Invalid proof of work - verify')
-            print(index)
-            print(cheese)
-            return False
-
-    return True
-
-
-def verify_transactions():
-    return all([verify_transaction(tx) for tx in open_transactions])
-
-    # is_valid = True
-    # for tx in open_transactions:
-    #     if verify_transaction(tx):
-    #         is_valid = True
-    #     else:
-    #         is_valid = False
-    # return is_valid
-
-
 waiting_for_input = True
 
 # continuously mine/add data to the chain and print
@@ -270,8 +213,7 @@ while waiting_for_input:
     print("1: Add a new transaction details")
     print("2: Mine a new cheese")
     print("3: Output the cheesechain cheeses")
-    print("4: Output participants")
-    print("5: Check transaction validity")
+    print("4: Check transaction validity")
     print("q: Quit")
     user_choice = get_user_choice()
 
@@ -290,9 +232,8 @@ while waiting_for_input:
     elif user_choice == '3':
         print_cheesechain_elements()
     elif user_choice == '4':
-        print(participants)
-    elif user_choice == '5':
-        if verify_transactions():
+        verifier = Verification()
+        if verifier.verify_transactions(open_transactions,get_balance):
             print('All transactions are valid')
         else:
             print('There are invalid transactions')
@@ -301,7 +242,8 @@ while waiting_for_input:
         # continue
     else:
         print("Invalid input. Please pick a value from the list")
-    if not verify_chain():
+    verifier = Verification()
+    if not verifier.verify_chain(cheesechain):
         print("invalid cheesechain")
         print_cheesechain_elements()
         break
