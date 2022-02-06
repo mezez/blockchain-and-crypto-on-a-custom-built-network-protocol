@@ -53,7 +53,7 @@ class Verification:
         :param transaction: a dictionary containing transaction details
         :return: confirm that sender has enough balance to carry out a transaction
         """
-        sender_balance = get_balance(transaction.sender)
+        sender_balance = get_balance()
         if sender_balance >= transaction.amount:
             return True
         return False
