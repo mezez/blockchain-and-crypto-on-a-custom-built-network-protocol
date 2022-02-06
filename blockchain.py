@@ -5,6 +5,7 @@ import hashlib
 from collections import OrderedDict
 
 from utils.hash_util import hash_cheese, hash_string_sha256
+from cheese import Cheese
 
 MINING_REWARD = 10  # CHEESECOIN
 
@@ -44,16 +45,14 @@ def load_data():
             formatted_cheesechain = []
             for cheese in cheesechain:
                 # note: block content ordering does not matter here since they are ordered by keys in hashing function
-                formatted_cheese = {
-                    'parent_smell': cheese['parent_smell'],
-                    'sequence_number': cheese['sequence_number'],
-                    'transactions': [OrderedDict([
+                formatted_tx = [OrderedDict([
                         ('sender', transaction['sender']),
                         ('recipient', transaction['recipient']),
                         ('amount', transaction['amount'])
-                    ]) for transaction in cheese['transactions']],
-                    'nonce': cheese['nonce']
-                }
+                    ]) for transaction in cheese['transactions']]
+
+                formatted_cheese = Cheese(cheese['sequence_number'], cheese['parent_smell'], formatted_tx, cheese['nonce'], cheese['timestamp'])
+
                 formatted_cheesechain.append(formatted_cheese)
             cheesechain = formatted_cheesechain
 
@@ -70,7 +69,7 @@ def load_data():
     except IOError:
         print("Cheesechain data file not found. Initializing new chain...")
         # starting cheese for the cheesechain
-        raclette_cheese = {'parent_smell': '', 'sequence_number': 0, 'transactions': [], 'nonce': 100}
+        raclette_cheese = Cheese(0, '', [], 100, 0)
         cheesechain.append(raclette_cheese)
 
 
@@ -80,7 +79,8 @@ load_data()
 def save_data():
     try:
         with open(CHEESECHAIN_FILE, mode='w') as file:
-            file.write(json.dumps(cheesechain))
+            saveable_chain = [cheese.__dict__ for cheese in cheesechain]
+            file.write(json.dumps(saveable_chain))
             file.write('\n')
             file.write(json.dumps(open_transactions))
     except IOError:
@@ -114,7 +114,7 @@ def get_balance(participant):
     :param participant: a person involved in a transaction
     :return: a float cumulative cheesecoin balance of the participant
     """
-    tx_sender = [[tx['amount'] for tx in cheese['transactions'] if tx['sender'] == participant] for cheese in
+    tx_sender = [[tx['amount'] for tx in cheese.transactions if tx['sender'] == participant] for cheese in
                  cheesechain]
     # get all the transaction amount sent by user, waiting to be mined in open transactions queue
     open_tx_sender = [tx['amount'] for tx in open_transactions if tx['sender'] == participant]
@@ -123,7 +123,7 @@ def get_balance(participant):
     for tx in tx_sender:
         if len(tx) > 0:
             amount_sent += tx[0]
-    tx_recipient = [[tx['amount'] for tx in cheese['transactions'] if tx['recipient'] == participant] for cheese in
+    tx_recipient = [[tx['amount'] for tx in cheese.transactions if tx['recipient'] == participant] for cheese in
                     cheesechain]
     amount_received = 0
     for tx in tx_recipient:
@@ -198,8 +198,7 @@ def mine_cheese():
     copied_transactions = open_transactions[:]
     copied_transactions.append(reward_transaction)
 
-    cheese = {'parent_smell': parent_smell, 'sequence_number': len(cheesechain), 'transactions': copied_transactions,
-              'nonce': nonce}
+    cheese = Cheese(len(cheesechain), parent_smell, copied_transactions, nonce)
     cheesechain.append(cheese)
     return True
 
@@ -243,13 +242,13 @@ def verify_chain():
             continue
         """comparing the previous hash/smell of the current cheese with a recalculated hash of the cheese preceding this cheese. 
                     if the previous cheese was manipulated..."""
-        if cheese['parent_smell'] != hash_cheese(cheesechain[index - 1]):
+        if cheese.parent_smell != hash_cheese(cheesechain[index - 1]):
             return False
         """confirm that the the previous hash/smell in the of a cheese in the cheese chain was generated using the accepted algorithm of this system.
             So we will be able to generate a hash that meets the defined valid hash condition with the previous hash, nonce and open transactions provided
         """
-        if not valid_proof(cheese['transactions'][:-1], cheese['parent_smell'],
-                           cheese['nonce']):  # select all parts of the list except the reward transaction
+        if not valid_proof(cheese.transactions[:-1], cheese.parent_smell,
+                           cheese.nonce):  # select all parts of the list except the reward transaction
             print('Invalid proof of work - verify')
             print(index)
             print(cheese)
@@ -280,7 +279,6 @@ while waiting_for_input:
     print("3: Output the cheesechain cheeses")
     print("4: Output participants")
     print("5: Check transaction validity")
-    print("h: Manipulate the chain")
     print("q: Quit")
     user_choice = get_user_choice()
 
@@ -305,15 +303,6 @@ while waiting_for_input:
             print('All transactions are valid')
         else:
             print('There are invalid transactions')
-    elif user_choice == 'h':
-        if len(cheesechain) >= 1:
-            cheesechain[0] = [
-                {
-                    'parent_smell': '',
-                    'sequence_number': 0,
-                    ' transactions': [{'sender': 'Sara', 'recipient': 'Randika', 'Amount': 22.24}]
-                }
-            ]
     elif user_choice == "q":
         waiting_for_input = False
         # continue

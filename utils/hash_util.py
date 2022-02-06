@@ -15,7 +15,8 @@ def hash_cheese(cheese):
     :param cheese: a single unit of the cheesechain
     :return: string hash value representing the cheese
     """
-    return hash_string_sha256(json.dumps(cheese, sort_keys=True).encode())
+    hashable_cheese = cheese.__dict__.copy()
+    return hash_string_sha256(json.dumps(hashable_cheese, sort_keys=True).encode())
     # order the keys of the cheese and generate hash,
     # this ensures consistency the output hash generated,
     # preventing issues with reording of keys in the dictionary
