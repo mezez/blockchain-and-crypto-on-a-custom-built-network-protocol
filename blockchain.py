@@ -1,6 +1,5 @@
 # initialize cheesechain list
 import json
-import pickle
 import sys
 import hashlib
 from collections import OrderedDict
@@ -11,86 +10,81 @@ MINING_REWARD = 10  # CHEESECOIN
 
 open_transactions = []
 cheesechain = []
-raclette_cheese = {'parent_smell': '', 'sequence_number': 0, 'transactions': [], 'nonce': 100}
-cheesechain.append(raclette_cheese)
+
 owner = 'Mez'
 participants = {'Mez'}
 VALID_HASH_CONDITION = '00'
 CHEESECHAIN_FILE = 'cheesechain.txt'
-CHEESECHAIN_FILE_PICKLE = 'cheesechain.p'
 
 
 def load_data():
-    with open(CHEESECHAIN_FILE_PICKLE, mode='rb') as file:
-        file_contents = pickle.loads(file.read())
+    global cheesechain, open_transactions  # let python know that we are trying to use the global variables, not create new local ones
+    try:
+        with open(CHEESECHAIN_FILE, mode='r') as file:
+            file_contents = file.readlines()
 
-        global cheesechain, open_transactions  # let python know that we are trying to use the global variables, not create new local ones
-        cheesechain = file_contents['chain']  # first line is the cheesechain
-        open_transactions = file_contents['open_transactions']
+            cheesechain = json.loads(file_contents[0])  # first line is the cheesechain
 
-        print(cheesechain)
-        print(open_transactions)
+            # the chain retrieved above contains transactions in a different format to how is was before saving
+            # this can cause chain verification to fail. So it is formatted to it's original form
+            # cheesechain = [
+            #     {
+            #         'parent_smell': cheese['parent_smell'],
+            #         'sequence_number': cheese['sequence_number'],
+            #         'transactions': [OrderedDict([
+            #             ('sender', transaction['sender']),
+            #             ('recipient', transaction['recipient']),
+            #             ('amount', transaction['amount'])
+            #         ]) for transaction in cheese['transactions']],
+            #         'nonce': cheese['nonce']
+            #     }
+            #     for cheese in cheesechain]
 
-        # the chain retrieved above contains transactions in a different format to how is was before saving
-        # this can cause chain verification to fail. So it is formatted to it's original form
-        # cheesechain = [
-        #     {
-        #         'parent_smell': cheese['parent_smell'],
-        #         'sequence_number': cheese['sequence_number'],
-        #         'transactions': [OrderedDict([
-        #             ('sender', transaction['sender']),
-        #             ('recipient', transaction['recipient']),
-        #             ('amount', transaction['amount'])
-        #         ]) for transaction in cheese['transactions']],
-        #         'nonce': cheese['nonce']
-        #     }
-        #     for cheese in cheesechain]
+            # alternative code with for loop
+            formatted_cheesechain = []
+            for cheese in cheesechain:
+                # note: block content ordering does not matter here since they are ordered by keys in hashing function
+                formatted_cheese = {
+                    'parent_smell': cheese['parent_smell'],
+                    'sequence_number': cheese['sequence_number'],
+                    'transactions': [OrderedDict([
+                        ('sender', transaction['sender']),
+                        ('recipient', transaction['recipient']),
+                        ('amount', transaction['amount'])
+                    ]) for transaction in cheese['transactions']],
+                    'nonce': cheese['nonce']
+                }
+                formatted_cheesechain.append(formatted_cheese)
+            cheesechain = formatted_cheesechain
 
-        # alternative code with for loop
-        # formatted_cheesechain = []
-        # for cheese in cheesechain:
-        #
-        #     # note: block content ordering does not matter here since they are ordered by keys in hashing function
-        #     formatted_cheese = {
-        #         'parent_smell': cheese['parent_smell'],
-        #         'sequence_number': cheese['sequence_number'],
-        #         'transactions': [OrderedDict([
-        #             ('sender', transaction['sender']),
-        #             ('recipient', transaction['recipient']),
-        #             ('amount', transaction['amount'])
-        #         ]) for transaction in cheese['transactions']],
-        #         'nonce': cheese['nonce']
-        #     }
-        #     formatted_cheesechain.append(formatted_cheese)
-        # cheesechain = formatted_cheesechain
-        #
-        # open_transactions = json.loads(file_contents[1])  # first line is the cheesechain
-        # formatted_transactions = []
-        # for transaction in open_transactions:
-        #     formatted_transaction = OrderedDict([
-        #             ('sender', transaction['sender']),
-        #             ('recipient', transaction['recipient']),
-        #             ('amount', transaction['amount'])
-        #         ])
-        #     formatted_transactions.append(formatted_transaction)
-        # open_transactions = formatted_transactions
+            open_transactions = json.loads(file_contents[1])  # first line is the cheesechain
+            formatted_transactions = []
+            for transaction in open_transactions:
+                formatted_transaction = OrderedDict([
+                    ('sender', transaction['sender']),
+                    ('recipient', transaction['recipient']),
+                    ('amount', transaction['amount'])
+                ])
+                formatted_transactions.append(formatted_transaction)
+            open_transactions = formatted_transactions
+    except IOError:
+        print("Cheesechain data file not found. Initializing new chain...")
+        # starting cheese for the cheesechain
+        raclette_cheese = {'parent_smell': '', 'sequence_number': 0, 'transactions': [], 'nonce': 100}
+        cheesechain.append(raclette_cheese)
 
 
 load_data()
 
 
 def save_data():
-    with open(CHEESECHAIN_FILE_PICKLE, mode='wb') as file:  # mode wb for writing in binary, used in pickle
-        # file.write(json.dumps(cheesechain))
-        # file.write('\n')
-        # file.write(json.dumps(open_transactions))
-
-        # save with pickle
-        data_to_save = {
-            'chain': cheesechain,
-            'open_transactions': open_transactions
-        }
-        file.write(pickle.dumps(data_to_save))
+    try:
+        with open(CHEESECHAIN_FILE, mode='w') as file:
+            file.write(json.dumps(cheesechain))
+            file.write('\n')
+            file.write(json.dumps(open_transactions))
+    except IOError:
+        print('Data could not be saved')
 
 
 def valid_proof(transactions, parent_smell, nonce):
@@ -168,8 +162,8 @@ def add_transaction(recipient, sender=owner, amount=1.0):
     :param amount: amount of cheesecoins sent in the transaction, default value 1.0
     :return: boolean
     """
-    #transaction = {'sender': sender, 'recipient': recipient, 'amount': amount}
-    #replace with ordered dictionary
+    # transaction = {'sender': sender, 'recipient': recipient, 'amount': amount}
+    # replace with ordered dictionary
 
     transaction = OrderedDict([('sender', sender), ('recipient', recipient), ('amount', amount)])
     if verify_transaction(transaction):  # confirm that there is enough money in sender's account
@@ -193,19 +187,19 @@ def mine_cheese():
     #     'amount': MINING_REWARD
     # }
 
-    #use ordered dictionary instead
+    # use ordered dictionary instead
     # Rewards are only added if mining is successful
     reward_transaction = OrderedDict([
         ('sender', 'CHEESECHAIN REWARD SYSTEM'), ('recipient', owner), ('amount', MINING_REWARD)
     ])
-
 
     # reward transactions will not appear in the global open transactions
     # if for some reason, the mining failed, so a copy is made
     copied_transactions = open_transactions[:]
     copied_transactions.append(reward_transaction)
 
-    cheese = {'parent_smell': parent_smell, 'sequence_number': len(cheesechain), 'transactions': copied_transactions, 'nonce': nonce}
+    cheese = {'parent_smell': parent_smell, 'sequence_number': len(cheesechain), 'transactions': copied_transactions,
+              'nonce': nonce}
     cheesechain.append(cheese)
     return True
 
@@ -254,7 +248,8 @@ def verify_chain():
         """confirm that the the previous hash/smell in the of a cheese in the cheese chain was generated using the accepted algorithm of this system.
             So we will be able to generate a hash that meets the defined valid hash condition with the previous hash, nonce and open transactions provided
         """
-        if not valid_proof(cheese['transactions'][:-1], cheese['parent_smell'], cheese['nonce']): #select all parts of the list except the reward transaction
+        if not valid_proof(cheese['transactions'][:-1], cheese['parent_smell'],
+                           cheese['nonce']):  # select all parts of the list except the reward transaction
             print('Invalid proof of work - verify')
             print(index)
             print(cheese)
