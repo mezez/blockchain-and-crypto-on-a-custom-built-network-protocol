@@ -4,6 +4,8 @@ import sys
 import hashlib
 from collections import OrderedDict
 
+from utils.hash_util import hash_cheese, hash_string_sha256
+
 MINING_REWARD = 10  # CHEESECOIN
 
 open_transactions = []
@@ -18,7 +20,7 @@ VALID_HASH_CONDITION = '00'
 def valid_proof(transactions, parent_smell, nonce):
     # guess a new hash
     guess = (str(transactions) + str(parent_smell) + str(nonce)).encode()
-    guess_smell = hashlib.sha256(guess).hexdigest()
+    guess_smell = hash_string_sha256(guess)
     print(guess_smell)
     # check if guess hash stars with 2 leading zeros
     return guess_smell[0:2] == VALID_HASH_CONDITION
@@ -34,18 +36,6 @@ def proof_of_work():
         if not _valid_proof:
             nonce += 1
     return nonce
-
-
-def hash_cheese(cheese):
-    """
-
-    :param cheese: a single unit of the cheesechain
-    :return: string hash value representing the cheese
-    """
-    return hashlib.sha256(json.dumps(cheese, sort_keys=True).encode()).hexdigest()
-    # order the keys of the cheese and generate hash,
-    # this ensures consistency the output hash generated,
-    # preventing issues with reording of keys in the dictionary
 
 
 def get_balance(participant):
