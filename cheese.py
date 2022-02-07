@@ -1,6 +1,7 @@
 from time import time
 
-from printable import Printable
+from utils.printable import Printable
+
 
 class Cheese(Printable):
     def __init__(self, sequence_number, parent_smell, transactions, nonce, time=time()):
@@ -9,4 +10,3 @@ class Cheese(Printable):
         self.transactions = transactions
         self.nonce = nonce
         self.timestamp = time
-
