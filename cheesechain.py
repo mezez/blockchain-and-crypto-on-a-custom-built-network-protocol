@@ -1,17 +1,20 @@
 # initialize cheesechain list
 import json
+import sys
 
 from utils.hash_util import hash_cheese
 from cheese import Cheese
 from transaction import Transaction
+from wallet import Wallet
 from utils.verification import Verification
-
-MINING_REWARD = 10  # CHEESECOIN
-VALID_HASH_CONDITION = '00'
-CHEESECHAIN_FILE = 'cheesechain.txt'
 
 
 class Cheesechain:
+    CHEESECHAIN_FILE = 'cheesechain.txt'
+    CHEESECHAIN_REWARD_SYSTEM = 'CHEESECHAIN REWARD SYSTEM'
+    REWARD_TRANSACTION_SIGNATURE = 'rewardtransactionsignature'
+    MINING_REWARD = 10  # CHEESECOIN
+
     def __init__(self, hosting_node_id):
         # starting cheese for the cheesechain
         raclette_cheese = Cheese(0, '', [], 100, 0)
@@ -36,7 +39,7 @@ class Cheesechain:
 
     def load_data(self):
         try:
-            with open(CHEESECHAIN_FILE, mode='r') as file:
+            with open(Cheesechain.CHEESECHAIN_FILE, mode='r') as file:
                 file_contents = file.readlines()
 
                 cheesechain = json.loads(file_contents[0])  # first line is the cheesechain
@@ -44,8 +47,10 @@ class Cheesechain:
                 formatted_cheesechain = []
                 for cheese in cheesechain:
                     # note: block content ordering does not matter here since they are ordered by keys in hashing function
-                    formatted_tx = [Transaction(transaction['sender'], transaction['recipient'], transaction['amount'])
-                                    for transaction in cheese['transactions']]
+                    formatted_tx = [
+                        Transaction(transaction['sender'], transaction['recipient'], transaction['signature'],
+                                    transaction['amount'])
+                        for transaction in cheese['transactions']]
 
                     formatted_cheese = Cheese(cheese['sequence_number'], cheese['parent_smell'], formatted_tx,
                                               cheese['nonce'], cheese['timestamp'])
@@ -56,8 +61,7 @@ class Cheesechain:
                 open_transactions = json.loads(file_contents[1])  # first line is the cheesechain
                 formatted_transactions = []
                 for transaction in open_transactions:
-                    formatted_transaction = [
-                        Transaction(transaction['sender'], transaction['recipient'], transaction['amount'])]
+                    formatted_transaction = Transaction(transaction['sender'], transaction['recipient'], transaction['signature'],transaction['amount'])
                     formatted_transactions.append(formatted_transaction)
                 self.__open_transactions = formatted_transactions
         except IOError:
@@ -65,7 +69,7 @@ class Cheesechain:
 
     def save_data(self):
         try:
-            with open(CHEESECHAIN_FILE, mode='w') as file:
+            with open(Cheesechain.CHEESECHAIN_FILE, mode='w') as file:
                 # convert the cheesechain object into a dictionary that can be parsed to json
                 # this also involves a nested conversion of the transactions list of objects into a list of dictionaries
                 save_able_chain = [cheese.__dict__ for cheese in [
@@ -97,9 +101,14 @@ class Cheesechain:
         :return: a float cumulative cheesecoin balance of the participant
         """
         participant = self.hosting_node
+
         tx_sender = [[tx.amount for tx in cheese.transactions if tx.sender == participant] for cheese in
                      self.__my_cheesechain]
         # get all the transaction amount sent by user, waiting to be mined in open transactions queue
+        print('Get balance')
+        print(self.__my_cheesechain)
+        print(self.__open_transactions)
+        # sys.exit()
         open_tx_sender = [tx.amount for tx in self.__open_transactions if tx.sender == participant]
         tx_sender.append(open_tx_sender)
         amount_sent = 0
@@ -123,11 +132,12 @@ class Cheesechain:
             return None
         return self.__my_cheesechain[-1]
 
-    def add_transaction(self, recipient, sender, amount=1.0):
+    def add_transaction(self, recipient, sender, signature, amount=1.0):
         """
 
         :param recipient: receiver of cheesecoin
         :param sender: sender of cheesechain
+        :param signature: signed string of sender showing authenticity
         :param amount: amount of cheesecoins sent in the transaction, default value 1.0
         :return: boolean
         """
@@ -135,11 +145,17 @@ class Cheesechain:
         # replace with ordered dictionary
         if self.hosting_node is None:
             return False
-        transaction = Transaction(sender, recipient, amount)
+        transaction = Transaction(sender, recipient, signature, amount)
+
+        # confirm that there is enough money in sender's account and transaction has a valid signature
         if Verification.verify_transaction(transaction,
-                                           self.get_balance):  # confirm that there is enough money in sender's account
+                                           self.get_balance):
             self.__open_transactions.append(transaction)
             self.save_data()
+
+            print('After save')
+            print(self.__my_cheesechain)
+            print(self.__open_transactions)
             return True
         return False
 
@@ -163,15 +179,22 @@ class Cheesechain:
 
         # use ordered dictionary instead
         # Rewards are only added if mining is successful
-        reward_transaction = Transaction('CHEESECHAIN REWARD SYSTEM', self.hosting_node, MINING_REWARD)
+        reward_transaction = Transaction(Cheesechain.CHEESECHAIN_REWARD_SYSTEM, self.hosting_node,
+                                         Cheesechain.REWARD_TRANSACTION_SIGNATURE, Cheesechain.MINING_REWARD)
 
         # reward transactions will not appear in the global open transactions
         # if for some reason, the mining failed, so a copy is made
         copied_transactions = self.__open_transactions[:]
+        # verify signatures for all transactions in this cheese (excluding reward transactions)
+        for tr in copied_transactions:
+            if not Wallet.verify_signature(tr):
+                return False
         copied_transactions.append(reward_transaction)
 
         cheese = Cheese(len(self.__my_cheesechain), parent_smell, copied_transactions, nonce)
-        self.__my_cheesechain.append(cheese)
+
+
+        self.get_chain().append(cheese)
         # reset open transactions and save
         self.__open_transactions = []
         self.save_data()

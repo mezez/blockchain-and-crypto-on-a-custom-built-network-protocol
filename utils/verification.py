@@ -1,5 +1,7 @@
 from utils.hash_util import hash_cheese, hash_string_sha256
 
+from wallet import Wallet
+
 
 class Verification:
     """
@@ -42,7 +44,7 @@ class Verification:
 
     @classmethod
     def verify_transactions(cls, open_transactions, get_balance):
-        return all([cls.verify_transaction(tx, get_balance) for tx in open_transactions])
+        return all([cls.verify_transaction(tx, get_balance, False) for tx in open_transactions])
 
         # is_valid = True
         # for tx in open_transactions:
@@ -53,14 +55,16 @@ class Verification:
         # return is_valid
 
     @staticmethod
-    def verify_transaction(transaction, get_balance):
+    def verify_transaction(transaction, get_balance, check_funds=True):
         """
 
+        :param check_funds: include available balance validation in verification, useful when adding a transaction
         :param get_balance: pointer to a get_balance function
         :param transaction: a dictionary containing transaction details
-        :return: confirm that sender has enough balance to carry out a transaction
+        :return: confirm that sender has enough balance to carry out a transaction and transaction has a valid signature
         """
-        sender_balance = get_balance()
-        if sender_balance >= transaction.amount:
-            return True
-        return False
+        if check_funds:
+            sender_balance = get_balance()
+            return sender_balance >= transaction.amount and Wallet.verify_signature(transaction)
+        else:
+            return Wallet.verify_signature(transaction)
