@@ -1,8 +1,12 @@
+from socket import socket
+
+
 class MySocket:
+    MSGLEN = 300
     """
         Boilerplate, to be improved
       - coded for clarity, not efficiency
-
+        see https://docs.python.org/3.9/howto/sockets.html
     """
 
     def __init__(self, sock=None):
@@ -17,7 +21,7 @@ class MySocket:
 
     def mysend(self, msg):
         totalsent = 0
-        while totalsent < MSGLEN:
+        while totalsent < MySocket.MSGLEN:
             sent = self.sock.send(msg[totalsent:])
             if sent == 0:
                 raise RuntimeError("socket connection broken")
@@ -26,8 +30,8 @@ class MySocket:
     def myreceive(self):
         chunks = []
         bytes_recd = 0
-        while bytes_recd < MSGLEN:
-            chunk = self.sock.recv(min(MSGLEN - bytes_recd, 2048))
+        while bytes_recd < MySocket.MSGLEN:
+            chunk = self.sock.recv(min(MySocket.MSGLEN - bytes_recd, 2048))
             if chunk == b'':
                 raise RuntimeError("socket connection broken")
             chunks.append(chunk)
