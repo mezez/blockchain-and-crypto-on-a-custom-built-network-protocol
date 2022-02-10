@@ -1,16 +1,22 @@
-# PROTOCOL DOCUMENT
+# PROTOCOL DOCUMENT  
+This is the protocol documentation for a cryptocurrency blockchain based on a peer to peer network  
+
+This Network consists of a tracker which simply keeps track of peers connected on the cheesechain network
+
 
 NOTE: ALL SAMPLE CODES ARE WRITTEN IN PYTHON
 * A TRACKER runs constantly on localhost (at the time of writing)
-* PEERS can connect to the tracker on port 9999
-* 
+* PEERS can connect to the tracker on port 9999  
+
+
 #-CONNECT TO TRACKER
 This demonstrates sample code in python for connecting to the tracker by a peer
 * Connection Request: 
 * TRACKER_HOST = 'localhost'
 * TRACKER_PORT = 9999
-* s = socket.create_connection((TRACKER_HOST, TRACKER_PORT)) 
-* 
+* s = socket.create_connection((TRACKER_HOST, TRACKER_PORT))  
+
+
 * Connection Response: 
 * type = byte string
 * response string = Connection Successful
@@ -25,8 +31,9 @@ This demonstrates sample code in python for requesting to join a cheesechain to 
 * JOIN_CHAIN is the request action
 * PEER_HOST is the connecting peer host
 * PEER_PORT is the connecting peer port
-* s.send(request_message.encode()) where is the socket created during connection
-* 
+* s.send(request_message.encode()) where is the socket created during connection  
+
+
 * Response: 
 * type = byte string
 * response string = PIDxxxxxxxxxxxxxxxxx
@@ -44,6 +51,16 @@ This demonstrates sample code in python for requesting list of peers in a cheese
 * response string = CPSS[{"peer_id":"PIDbbbbb", "host":"0.9.X.X","port":"0.9.X.X"}, {"peer_id":"PIDbbbbb", "host":"0.9.X.X","port":"0.9.X.X"}, {"peer_id":"PIDbbbbb", "host":"0.9.X.X","port":"0.9.X.X"}, ...]
 
 #-CONNECT TO PEER
+This demonstrates sample code in python for connecting to the a peer by another peer
+* Connection Request: 
+* s = socket.create_connection((PEER_HOST, PEER_PORT))  
+
+
+* Connection Response: 
+* type = byte string
+* response string = Connection to peer [PEER_ID]
+
+
 #-INFORM PEERS OF NEW CHEESE
 #-SHARE CHEESE TO PEER(S)
 #-GET CHEESE FROM PEER(S)
