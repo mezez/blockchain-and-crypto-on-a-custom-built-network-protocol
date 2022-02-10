@@ -23,7 +23,7 @@ This demonstrates sample code in python for requesting to join a cheesechain to 
 * 
 * Response: 
 * type = byte
-* response string = PIDxxxxxxxxxxxxxxxxxx
+* response string = PIDxxxxxxxxxxxxxxxxx
 
 #-REQUEST LIST OF PEERS IN THE CHAIN
 This demonstrates sample code in python for requesting list of peers in a cheesechain to the tracker by a peer. Returns peer_id of the peer
