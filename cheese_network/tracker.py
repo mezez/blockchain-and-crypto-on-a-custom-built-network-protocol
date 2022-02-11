@@ -31,7 +31,7 @@ def handle_accept_all(my_queue):
         # create a socket that listens (on a port of your choice)
         server_socket = socket.socket()
         server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        server_socket.bind(('0.0.0.0', CheeseProtocol.TRACKER_PORT))
+        server_socket.bind((CheeseProtocol.TRACKER_HOST, CheeseProtocol.TRACKER_PORT))
         server_socket.listen()
         print(server_socket)
         print('waiting for connection from peers')
@@ -46,16 +46,16 @@ def handle_accept_all(my_queue):
             # s.send(connection_message.encode())
             s.send(connection_message)
 
-            # and start a handle_client thread every time
-            handle_client(s, my_queue).start()
+            # and start a handle_peer thread every time
+            handle_peer(s, my_queue).start()
 
     t = Thread(target=handle)
     return t
 
 
-# handle_client returns a Thread that can be started, i.e., use: handle_client(.......).start()
+# handle_peer returns a Thread that can be started, i.e., use: handle_peer(.......).start()
 # producer
-def handle_client(socket, my_queue):
+def handle_peer(socket, my_queue):
     def handle(): #add elements to queue
         # initialise a random integer position, e.g. between 0 and 100
 
@@ -71,7 +71,7 @@ def handle_client(socket, my_queue):
                 print("received", line)
 
                 """process request"""
-                request_type = CheeseProtocol.process_client_request(line)
+                request_type = CheeseProtocol.process_peer_request(line)
 
                 if request_type == CheeseProtocol.join_chain:
                     # get peer host and port

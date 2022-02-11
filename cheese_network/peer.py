@@ -9,6 +9,7 @@ from threading import Thread
 
 from my_helpers import MyHelpers
 from cheese_protocol import CheeseProtocol
+from wallet import Wallet
 
 
 class Peer:
@@ -19,7 +20,8 @@ class Peer:
         self.tracker_socket = None
         self.host = host
         self.port = port
-        self.connected_peers = []
+        self.connected_to = []
+        self.wallet = Wallet()
 
         self.connect_to_tracker()
 
@@ -69,14 +71,56 @@ class Peer:
                 # s.send(connection_message.encode())
                 s.send(connection_message)
 
-                # and start a handle_client thread every time
+                # and start a handle_peer thread every time
                 self.handle_peers(s, my_queue).start()
 
         t = Thread(target=handle)
         return t
 
+    def request_cheesechain_from_peers(self):
+        # loop through connected peers list and request for cheesechain from them all
+        pass
+
+    # spin up a thread everytime you connect to a peer
+    def connect_to_peer(self, peer_id, peer_host, peer_port):
+        def handle_connect():
+            print("Connecting to peer" + str(peer_id))
+            s = socket.create_connection((peer_host, peer_port))
+            self.tracker_socket = s
+            print("created", s)
+            # Connection Successful, spin up a thread to handle there requests
+            self.handle_peers(self, s).start()
+
+            # update list of peers you connected to
+            peer_info = {
+                'peer_id': peer_id,
+                'host': peer_host,
+                'post': peer_port
+            }
+            self.connected_to.append(peer_info)
+
+            # while True:
+                #line = MyHelpers.read_line(socket)
+                #if line is None:
+                    # end the loop when the connection is closed (readLine returns None or throws an exception)
+                 #   break
+                #else:
+                 #   print("received", line)
+                  #  if line.startswith("Connected to peer:"):
+                   #     print(line)
+
+                    # action for receiving newly mined cheese notification from peer
+                    # maybe the broadcast should come with the cheesechain and open transactions
+
+
+                    # action for receiving cheesechain from peers
+
+            #s.close()
+        t = Thread(target=handle_connect)
+        return t
+
     def connect_to_tracker(self):
-        print("Connecting to tracking")
+        print("Connecting to tracker")
         s = socket.create_connection(('localhost', CheeseProtocol.TRACKER_PORT))
         self.tracker_socket = s
         print("created", s)
@@ -106,9 +150,9 @@ class Peer:
 
         #s.close()
 
-    def handle_peers(self, socket, my_queue):
-        def handle():  # add elements to queue
-            # initialise a random integer position, e.g. between 0 and 100
+    # peers connected to you and the ones you connected to
+    def handle_peers(self, socket, my_queue=None):
+        def handle():
 
             # loop over the received data, ignoring (or just printing) this data for now (e.g., use netutils to read lines)
             # be sure to end the loop when the connection is closed (readLine returns None or throws an exception)
@@ -120,19 +164,20 @@ class Peer:
                 else:
                     print("received", line)
 
-                    """process request"""
-                    request_type = CheeseProtocol.process_client_request(line)
+                    if line.startswith("Connected to peer:"):
+                        print(line)
 
-                    if request_type == CheeseProtocol.join_chain:
-                        peer_id = MyHelpers.generate_peer_id()
-                        self.connected_peers.append(peer_id)
-                        # send peer_id to client, id will be required for other requests
-                        socket.send(peer_id)
+                    """process request requests received from peers,"""
+                    request_type = CheeseProtocol.process_peer_request(line)
 
-                    if request_type == CheeseProtocol.get_peers:
-                        connected_peers_sublist = MyHelpers.get_part_of_peers(self.connected_peers, True)
-                        connected_peers_sublist = MyHelpers.connected_peers_start_string + connected_peers_sublist + '\r\n'
-                        socket.send(connected_peers_sublist.encode())
+                    if request_type == CheeseProtocol.get_chain:
+                        # load node, retrieve wallet and get cheesechain and open transactions from it
+                        # convert to string and sent to peer
+                        pass
+
+                    if request_type == CheeseProtocol.new_cheese:
+                        pass
+
 
         t = Thread(target=handle)
         return t
@@ -142,6 +187,15 @@ class Peer:
             Peer.send_message(CheeseProtocol.get_peers, self.tracker_socket)
         else:
             return False
+
+    def request_chain(self):
+        pass
+
+    def share_cheesechain(self):
+        pass
+
+    def share_new_cheeschain(self):
+        pass
 
     @staticmethod
     def send_magic_word(my_socket):
