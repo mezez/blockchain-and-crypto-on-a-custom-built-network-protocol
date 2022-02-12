@@ -1,4 +1,5 @@
 import binascii
+import sys
 import time
 
 from Crypto.PublicKey import RSA
@@ -16,8 +17,8 @@ class Wallet:
 
     def create_keys(self):
         private_key, public_key = self.generate_keys()
-        self.private_key = private_key
-        self.public_key = public_key
+        self.private_key = private_key.strip()
+        self.public_key = public_key.strip()
 
     def save_keys(self):
         # save keys to file
@@ -27,8 +28,10 @@ class Wallet:
                     wallet_file.write(self.public_key)
                     wallet_file.write('\n')
                     wallet_file.write(self.private_key)
+                return True
             except(IOError, IndexError):
                 print('Keys could not be saved to file')
+                return False
 
     def load_keys(self):
         try:
@@ -38,10 +41,12 @@ class Wallet:
                 public_key = keys[0]
                 private_key = keys[1]
 
-                self.public_key = public_key
-                self.private_key = private_key
+                self.public_key = public_key.strip()
+                self.private_key = private_key.strip()
+            return True
         except(IOError, IndexError):
             print('Keys could not be loaded')
+            return False
 
     def generate_keys(self):
         # public and private key in binary form
@@ -60,7 +65,7 @@ class Wallet:
         :param amount:
         :return:
         """
-        signer = PKCS1_v1_5.new(RSA.importKey(binascii.unhexlify(self.private_key)))
+        signer = PKCS1_v1_5.new(RSA.importKey(binascii.unhexlify(self.private_key.strip())))
         payload_hash = SHA256.new((str(sender) + str(recipient) + str(amount)).encode('utf8'))
         signature = signer.sign(payload_hash)
         return binascii.hexlify(signature).decode('ascii')
@@ -72,7 +77,17 @@ class Wallet:
         :param transaction: transaction containing signature
         :return: True of verified or False otherwise
         """
-        public_key = RSA.importKey(binascii.unhexlify(transaction.sender))
+        public_key = RSA.importKey(binascii.unhexlify(transaction.sender.strip()))
         verifier = PKCS1_v1_5.new(public_key)
         payload_hash = SHA256.new((str(transaction.sender) + str(transaction.recipient) + str(transaction.amount)).encode('utf8'))
         return verifier.verify(payload_hash, binascii.unhexlify(transaction.signature))
+
+    @staticmethod
+    def make_string_length_even(key):
+        print(key)
+        if len(key) % 2 == 0:
+            return key
+        else:
+            key = key + "0"
+            print(key)
+            return key

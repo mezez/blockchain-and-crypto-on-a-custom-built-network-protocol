@@ -100,6 +100,9 @@ class Cheesechain:
         :param participant: a person involved in a transaction
         :return: a float cumulative cheesecoin balance of the participant
         """
+        if self.hosting_node is None:
+            # no public key available
+            return None
         participant = self.hosting_node
 
         tx_sender = [[tx.amount for tx in cheese.transactions if tx.sender == participant] for cheese in
@@ -165,7 +168,7 @@ class Cheesechain:
         :return: True for success, False otherwise
         """
         if self.hosting_node is None:
-            return False
+            return None
         last_cheese = self.__my_cheesechain[-1]  # last cheese in the chain
 
         parent_smell = hash_cheese(last_cheese)
@@ -188,7 +191,7 @@ class Cheesechain:
         # verify signatures for all transactions in this cheese (excluding reward transactions)
         for tr in copied_transactions:
             if not Wallet.verify_signature(tr):
-                return False
+                return None
         copied_transactions.append(reward_transaction)
 
         cheese = Cheese(len(self.__my_cheesechain), parent_smell, copied_transactions, nonce)
@@ -198,4 +201,4 @@ class Cheesechain:
         # reset open transactions and save
         self.__open_transactions = []
         self.save_data()
-        return True
+        return cheese
