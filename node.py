@@ -130,7 +130,7 @@ def add_transaction():
 
 @app.route('/transactions', methods=['GET'])
 def get_open_transactions():
-    transactions = cheesechain.get_open_transactions() # transactions object
+    transactions = cheesechain.get_open_transactions()  # transactions object
     transactions_dictionary = [tr.__dict__ for tr in transactions]
     return jsonify(transactions_dictionary), 200
 
