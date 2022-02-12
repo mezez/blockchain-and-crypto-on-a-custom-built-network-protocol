@@ -10,6 +10,7 @@ from threading import Thread
 from cheese_network.my_helpers import MyHelpers
 from cheese_network.cheese_protocol import CheeseProtocol
 from wallet import Wallet
+from cheesechain import Cheesechain
 
 
 class Peer:
@@ -54,18 +55,18 @@ class Peer:
     def handle_accept_all(self, my_queue):
         def handle():
             # create a socket that listens (on a port of your choice)
-            server_socket = socket.socket()
-            server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            peer_socket = socket.socket()
+            peer_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             # server_socket.bind(('0.0.0.0', CheeseProtocol.TRACKER_PORT))
-            server_socket.bind((self.host, self.port))
-            server_socket.listen()
+            peer_socket.bind((self.host, self.port))
+            peer_socket.listen()
             print('My listening socket')
-            print(server_socket)
+            print(peer_socket)
             print('waiting for connection from other peers')
 
             # accept new peers connections,
             while True:
-                s, addr = server_socket.accept()  # blocking
+                s, addr = peer_socket.accept()  # blocking
                 print('received connection', s)
 
                 # notify peer of successful connection
@@ -154,7 +155,7 @@ class Peer:
                     # set up your socket and start listening
                     if self.main():
                         print("IN MAIN:")
-                        join_request = CheeseProtocol.join_chain + "_:" + self.host + ":" + str(self.port)
+                        join_request = CheeseProtocol.join_chain + ":" + self.host + ":" + str(self.port)
                         Peer.send_message(join_request, self.tracker_socket)
 
                 if line.startswith(MyHelpers.peer_id_start_string):
@@ -192,9 +193,24 @@ class Peer:
                     request_type = CheeseProtocol.process_peer_request(line)
 
                     if request_type == CheeseProtocol.get_chain:
-                        # load node, retrieve wallet and get cheesechain and open transactions from it
-                        # convert to string and sent to peer
-                        pass
+                        # load node, retrieve wallet and get cheesechain
+                        wallet = Wallet()
+                        cheesechain = Cheesechain(wallet.public_key)
+                        chain = MyHelpers.get_peer_chain(cheesechain)
+
+                        # convert to string and send to peer
+                        formatted_chain = MyHelpers.chain_start_string + chain
+                        socket.send(formatted_chain.encode())
+
+                    if request_type == CheeseProtocol.get_open_transactions:
+                        # load node, retrieve wallet and get open transactions
+                        wallet = Wallet()
+                        cheesechain = Cheesechain(wallet.public_key)
+                        transactions = MyHelpers.get_peer_open_transactions(cheesechain)
+
+                        # convert to string and send to peer
+                        formatted_tr = MyHelpers.chain_start_string + transactions
+                        socket.send(formatted_tr.encode())
 
                     if request_type == CheeseProtocol.new_cheese:
                         pass
@@ -219,18 +235,64 @@ class Peer:
                     break
                     #pass
                 else:
-                    print("RECEIVED LINE:")
+                    print("RECEIVED LINE (CONNECTED PEERS):")
                     print("received", line)
                     if line.startswith(MyHelpers.connected_peers_start_string):
-                        print('CONNECTED PEERS')
                         connected_peers = line
                         listening_for_response = False
             return connected_peers
         else:
             return False
 
-    def request_chain(self):
-        pass
+    def request_chain(self, peer_socket):
+        print(self.tracker_socket)
+        if self.peer_id is not None and self.tracker_socket is not None:
+            request = CheeseProtocol.get_chain + ':' + self.peer_id
+            Peer.send_message(request, peer_socket)
+
+            listening_for_response = True
+            peer_chain = None
+            while listening_for_response:
+                line = MyHelpers.custom_read(self.tracker_socket)
+                if line is None:
+                    # end the loop when the connection is closed (readLine returns None or throws an exception)
+                    print("No response received")
+                    break
+                    # pass
+                else:
+                    print("RECEIVED LINE (PEER CHAIN):")
+                    print("received", line)
+                    if line.startswith(MyHelpers.chain_start_string):
+                        peer_chain = line
+                        listening_for_response = False
+            return peer_chain
+        else:
+            return False
+
+    def request_open_transactions(self, peer_socket):
+        print(self.tracker_socket)
+        if self.peer_id is not None and self.tracker_socket is not None:
+            request = CheeseProtocol.get_open_transactions + ':' + self.peer_id
+            Peer.send_message(request, peer_socket)
+
+            listening_for_response = True
+            peer_tr = None
+            while listening_for_response:
+                line = MyHelpers.custom_read(self.tracker_socket)
+                if line is None:
+                    # end the loop when the connection is closed (readLine returns None or throws an exception)
+                    print("No response received")
+                    break
+                    # pass
+                else:
+                    print("RECEIVED LINE (PEER TR):")
+                    print("received", line)
+                    if line.startswith(MyHelpers.transaction_start_string):
+                        peer_tr = line
+                        listening_for_response = False
+            return peer_tr
+        else:
+            return False
 
     def share_cheesechain(self):
         pass

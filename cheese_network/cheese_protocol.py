@@ -5,6 +5,7 @@ class CheeseProtocol:
     INVALID_PEER_ID_RESPONSE = "INVALID_PEER_ID"
     join_chain = "JOIN_CHAIN"
     get_chain = "GET_CHAIN"
+    get_open_transactions = "GET_OPEN_TRANSACTIONS"
     get_peers = "GET_PEERS"
     new_cheese = "NEW_CHEESE"
 

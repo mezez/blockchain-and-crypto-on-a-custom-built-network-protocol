@@ -81,7 +81,8 @@ def handle_peer(socket, my_queue):
                     peer_info = {
                         'peer_id': peer_id,
                         'host': peer_host,
-                        'port': peer_port
+                        'port': peer_port,
+                        'socket': socket
                     }
                     connected_peers.append(peer_info)
                     print('Tracker\'s connected peers')
@@ -93,7 +94,7 @@ def handle_peer(socket, my_queue):
                     peer_data = CheeseProtocol.validate_request(line, connected_peers)
                     if peer_data is not False:
                         connected_peers_sublist = MyHelpers.get_part_of_peers(connected_peers, True)
-                        connected_peers_sublist = MyHelpers.connected_peers_start_string + connected_peers_sublist + '\r\n'
+                        connected_peers_sublist = MyHelpers.connected_peers_start_string + connected_peers_sublist
                         socket.send(connected_peers_sublist.encode())
                     else:
                         response_message = CheeseProtocol.INVALID_PEER_ID_RESPONSE + '\r\n'

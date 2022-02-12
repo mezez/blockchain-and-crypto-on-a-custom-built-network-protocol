@@ -1,10 +1,15 @@
+import sys
+
 from flask import Flask, jsonify, request, send_from_directory
 # from flask_restful import Api, Resource
 from flask_cors import CORS, cross_origin
+import ast
+import socket
 
 from wallet import Wallet
 from cheesechain import Cheesechain
 from cheese_network.peer import Peer
+from cheese_network.my_helpers import MyHelpers
 
 app = Flask(__name__)
 CORS(app)
@@ -13,6 +18,8 @@ wallet = Wallet()
 cheesechain = Cheesechain(wallet.public_key)
 
 peer_object = None
+peer_chains = []
+peer_open_transactions = []
 
 """routes"""
 
@@ -87,7 +94,42 @@ def get_chain():
     if peer_object is not None:
         print("PEER_OBJ")
         connected_peers = peer_object.request_connected_peers()
-        print(connected_peers)
+        connected_peers = connected_peers.replace(MyHelpers.connected_peers_start_string, '')
+        connected_peers = ast.literal_eval(connected_peers)
+
+        # loop through the peers and request chains from them if the peer id doesn't match yours
+        count = 0
+        for connected_peer in connected_peers:
+            connected_peer_id = connected_peer['peer_id']
+            connected_peer_host = connected_peer['host']
+            connected_peer_port = connected_peer['port']
+            connected_peer_socket = connected_peer['socket']
+            # connect to peer
+            print("Connecting to peer with details: ")
+            print("Host: ", connected_peer_host)
+            print("port: ", connected_peer_port)
+            s = socket.create_connection((connected_peer_host, connected_peer_host))
+            print("connected to: ", s)
+
+            # request chain
+            peer_chain = peer_object.request_chain(connected_peer_socket)
+            peer_chain = peer_chain.replace(MyHelpers.chain_start_string, '')
+            peer_chain = ast.literal_eval(peer_chain)
+            peer_chains.append(peer_chain)
+
+            # request open transactions
+            peer_tr = peer_object.request_open_transactions(connected_peer_socket)
+            peer_tr = peer_tr.replace(MyHelpers.transaction_start_string, '')
+            peer_tr = ast.literal_eval(peer_tr)
+            peer_open_transactions.append(peer_tr)
+
+
+            count += 1
+
+        sys.exit("bye for now")
+        # compare their chains among themselves and with yours, pick the longest chain
+        # update your chain if it is outdated, notify others with different chains if so
+        # return the up-to-date chain
     chain_snapshot = cheesechain.get_chain()
     # convert the cheesechain object to dictionary, to be able to parse to json
     chain_dictionary = [cheese.__dict__.copy() for cheese in chain_snapshot]
