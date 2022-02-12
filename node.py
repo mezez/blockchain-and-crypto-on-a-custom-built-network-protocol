@@ -1,5 +1,5 @@
 from flask import Flask, jsonify, request, send_from_directory
-from flask_restful import Api, Resource
+# from flask_restful import Api, Resource
 from flask_cors import CORS, cross_origin
 
 from wallet import Wallet
