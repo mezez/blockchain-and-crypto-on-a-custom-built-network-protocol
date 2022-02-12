@@ -1,6 +1,6 @@
 class CheeseProtocol:
     # TRACKER_HOST = '0.0.0.0'
-    TRACKER_HOST = 'localhost'
+    TRACKER_HOST = '127.0.0.1'
     TRACKER_PORT = 9999
     INVALID_PEER_ID_RESPONSE = "INVALID_PEER_ID"
     join_chain = "JOIN_CHAIN"
@@ -12,14 +12,14 @@ class CheeseProtocol:
     @staticmethod
     def process_peer_request(request_body):
         # for tracker
-        if request_body.startsWith(CheeseProtocol.join_chain):
+        if request_body.startswith(CheeseProtocol.join_chain):
             return CheeseProtocol.join_chain
-        if request_body.startsWith(CheeseProtocol.get_peers):
+        if request_body.startswith(CheeseProtocol.get_peers):
             return CheeseProtocol.get_peers
         # for peers
-        if request_body.startsWith(CheeseProtocol.get_chain):
+        if request_body.startswith(CheeseProtocol.get_chain):
             return CheeseProtocol.get_chain
-        if request_body.startsWith(CheeseProtocol.new_cheese):
+        if request_body.startswith(CheeseProtocol.new_cheese):
             return CheeseProtocol.new_cheese
 
     @staticmethod
@@ -29,7 +29,7 @@ class CheeseProtocol:
         peer_id = request_body[1]
 
         for peer_data in connected_peers:
-            if peer_id in peer_data.keys():
+            if peer_data['peer_id'] == peer_id:
                 return peer_data
 
         return False

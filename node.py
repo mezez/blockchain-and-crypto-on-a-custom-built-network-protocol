@@ -4,12 +4,15 @@ from flask_cors import CORS, cross_origin
 
 from wallet import Wallet
 from cheesechain import Cheesechain
+from cheese_network.peer import Peer
 
 app = Flask(__name__)
 CORS(app)
 # api = Api(app)
 wallet = Wallet()
 cheesechain = Cheesechain(wallet.public_key)
+
+peer_object = None
 
 """routes"""
 
@@ -75,6 +78,16 @@ def get_balance():
 
 @app.route('/chain', methods=['GET'])
 def get_chain():
+    # connect to a network tracker if not connected already
+    global peer_object
+    if peer_object is None:
+        peer_object = Peer()
+        # print(peer_object.__dict__)
+        print("My Peer")
+    if peer_object is not None:
+        print("PEER_OBJ")
+        connected_peers = peer_object.request_connected_peers()
+        print(connected_peers)
     chain_snapshot = cheesechain.get_chain()
     # convert the cheesechain object to dictionary, to be able to parse to json
     chain_dictionary = [cheese.__dict__.copy() for cheese in chain_snapshot]

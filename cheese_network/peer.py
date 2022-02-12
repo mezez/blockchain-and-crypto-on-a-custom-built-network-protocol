@@ -7,14 +7,14 @@ import time
 
 from threading import Thread
 
-from my_helpers import MyHelpers
-from cheese_protocol import CheeseProtocol
+from cheese_network.my_helpers import MyHelpers
+from cheese_network.cheese_protocol import CheeseProtocol
 from wallet import Wallet
 
 
 class Peer:
 
-    def __init__(self, host, port):
+    def __init__(self, host=None, port=None):
         self.peer_id = None
         self.connected_peers = []
         self.tracker_socket = None
@@ -49,6 +49,7 @@ class Peer:
         q = queue.Queue()
         # start a new thread to accept new connections
         self.handle_accept_all(q).start()
+        return True
 
     def handle_accept_all(self, my_queue):
         def handle():
@@ -58,6 +59,7 @@ class Peer:
             # server_socket.bind(('0.0.0.0', CheeseProtocol.TRACKER_PORT))
             server_socket.bind((self.host, self.port))
             server_socket.listen()
+            print('My listening socket')
             print(server_socket)
             print('waiting for connection from other peers')
 
@@ -68,8 +70,7 @@ class Peer:
 
                 # notify peer of successful connection
                 connection_message = "Connected to peer: " + self.peer_id
-                # s.send(connection_message.encode())
-                s.send(connection_message)
+                s.send(connection_message.encode())
 
                 # and start a handle_peer thread every time
                 self.handle_peers(s, my_queue).start()
@@ -121,17 +122,28 @@ class Peer:
 
     def connect_to_tracker(self):
         print("Connecting to tracker")
-        s = socket.create_connection(('localhost', CheeseProtocol.TRACKER_PORT))
+        s = socket.create_connection((CheeseProtocol.TRACKER_HOST, CheeseProtocol.TRACKER_PORT))
         self.tracker_socket = s
         print("created", s)
 
-        # Connection Successful
-        while True:
-            line = MyHelpers.read_line(socket)
+        my_info = s.getsockname()
+        self.host = my_info[0]
+        self.port = my_info[1]
+        print("my host", self.host)
+        print("my port", self.port)
+
+        # Connection Successful, spin up a thread to handle there requests
+        # self.handle_peers(self, s).start()
+        initial_listening = True
+        while initial_listening:
+            # line = MyHelpers.read_line(s)
+            line = MyHelpers.custom_read(s)
             if line is None:
                 # end the loop when the connection is closed (readLine returns None or throws an exception)
+                print("No response received")
                 break
             else:
+                print("RECEIVED LINE:")
                 print("received", line)
                 if line == "Connection Successful":
                     # request to join chain
@@ -141,13 +153,22 @@ class Peer:
 
                     # set up your socket and start listening
                     if self.main():
+                        print("IN MAIN:")
                         join_request = CheeseProtocol.join_chain + "_:" + self.host + ":" + str(self.port)
                         Peer.send_message(join_request, self.tracker_socket)
 
                 if line.startswith(MyHelpers.peer_id_start_string):
                     # peer id received
+                    print("IN peer id:")
                     self.peer_id = line
 
+                    # once peer id is received, spin up a thread to listen  and
+                    # to other things that may come from the tracker
+                    # but don't close the connection
+                    initial_listening = False
+                    # return self.__dict__
+
+        #handle subsequent messages from tracker
         #s.close()
 
     # peers connected to you and the ones you connected to
@@ -183,8 +204,28 @@ class Peer:
         return t
 
     def request_connected_peers(self):
+        print(self.tracker_socket)
         if self.peer_id is not None and self.tracker_socket is not None:
-            Peer.send_message(CheeseProtocol.get_peers, self.tracker_socket)
+            request = CheeseProtocol.get_peers + ':' + self.peer_id
+            Peer.send_message(request, self.tracker_socket)
+
+            listening_for_response = True
+            connected_peers = None
+            while listening_for_response:
+                line = MyHelpers.custom_read(self.tracker_socket)
+                if line is None:
+                    # end the loop when the connection is closed (readLine returns None or throws an exception)
+                    print("No response received")
+                    break
+                    #pass
+                else:
+                    print("RECEIVED LINE:")
+                    print("received", line)
+                    if line.startswith(MyHelpers.connected_peers_start_string):
+                        print('CONNECTED PEERS')
+                        connected_peers = line
+                        listening_for_response = False
+            return connected_peers
         else:
             return False
 

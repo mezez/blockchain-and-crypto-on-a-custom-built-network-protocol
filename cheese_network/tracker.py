@@ -1,8 +1,8 @@
 import queue
 from threading import Thread
 import socket
-from my_helpers import MyHelpers
-from cheese_protocol import CheeseProtocol
+from cheese_network.my_helpers import MyHelpers
+from cheese_network.cheese_protocol import CheeseProtocol
 import random
 
 # magic word
@@ -43,8 +43,7 @@ def handle_accept_all(my_queue):
 
             # notify peer of successful connection
             connection_message = "Connection Successful"
-            # s.send(connection_message.encode())
-            s.send(connection_message)
+            s.send(connection_message.encode())
 
             # and start a handle_peer thread every time
             handle_peer(s, my_queue).start()
@@ -82,11 +81,13 @@ def handle_peer(socket, my_queue):
                     peer_info = {
                         'peer_id': peer_id,
                         'host': peer_host,
-                        'post': peer_port
+                        'port': peer_port
                     }
                     connected_peers.append(peer_info)
+                    print('Tracker\'s connected peers')
+                    print(connected_peers)
                     # send peer_id to client, id will be required for other requests
-                    socket.send(peer_id)
+                    socket.send(peer_id.encode())
 
                 if request_type == CheeseProtocol.get_peers:
                     peer_data = CheeseProtocol.validate_request(line, connected_peers)
@@ -94,8 +95,9 @@ def handle_peer(socket, my_queue):
                         connected_peers_sublist = MyHelpers.get_part_of_peers(connected_peers, True)
                         connected_peers_sublist = MyHelpers.connected_peers_start_string + connected_peers_sublist + '\r\n'
                         socket.send(connected_peers_sublist.encode())
-                    response_message = CheeseProtocol.INVALID_PEER_ID_RESPONSE + '\r\n'
-                    socket.send(response_message.encode())
+                    else:
+                        response_message = CheeseProtocol.INVALID_PEER_ID_RESPONSE + '\r\n'
+                        socket.send(response_message.encode())
 
 
     t = Thread(target=handle)
