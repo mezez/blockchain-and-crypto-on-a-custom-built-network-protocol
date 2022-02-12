@@ -15,14 +15,14 @@ from cheesechain import Cheesechain
 
 class Peer:
 
-    def __init__(self, host=None, port=None):
+    def __init__(self, node_id, host=None, port=None):
         self.peer_id = None
         self.connected_peers = []
         self.tracker_socket = None
         self.host = host
         self.port = port
         self.connected_to = []
-        self.wallet = Wallet()
+        self.wallet = Wallet(node_id)
 
         self.connect_to_tracker()
 
@@ -194,8 +194,12 @@ class Peer:
 
                     if request_type == CheeseProtocol.get_chain:
                         # load node, retrieve wallet and get cheesechain
-                        wallet = Wallet()
-                        cheesechain = Cheesechain(wallet.public_key)
+                        request_body = line.split(':')
+                        node_id = request_body[2]
+                        wallet = Wallet(node_id)
+
+                        wallet.load_keys()
+                        cheesechain = Cheesechain(wallet.public_key, node_id)
                         chain = MyHelpers.get_peer_chain(cheesechain)
 
                         # convert to string and send to peer
@@ -204,8 +208,11 @@ class Peer:
 
                     if request_type == CheeseProtocol.get_open_transactions:
                         # load node, retrieve wallet and get open transactions
-                        wallet = Wallet()
-                        cheesechain = Cheesechain(wallet.public_key)
+                        request_body = line.split(':')
+                        node_id = request_body[2]
+                        wallet = Wallet(node_id)
+                        wallet.load_keys()
+                        cheesechain = Cheesechain(wallet.public_key, node_id)
                         transactions = MyHelpers.get_peer_open_transactions(cheesechain)
 
                         # convert to string and send to peer
@@ -244,10 +251,10 @@ class Peer:
         else:
             return False
 
-    def request_chain(self, peer_socket):
+    def request_chain(self, peer_socket, node_port):
         print(self.tracker_socket)
         if self.peer_id is not None and self.tracker_socket is not None:
-            request = CheeseProtocol.get_chain + ':' + self.peer_id
+            request = CheeseProtocol.get_chain + ':' + self.peer_id + ':' + node_port
             Peer.send_message(request, peer_socket)
 
             listening_for_response = True
@@ -269,10 +276,10 @@ class Peer:
         else:
             return False
 
-    def request_open_transactions(self, peer_socket):
+    def request_open_transactions(self, peer_socket, node_port):
         print(self.tracker_socket)
         if self.peer_id is not None and self.tracker_socket is not None:
-            request = CheeseProtocol.get_open_transactions + ':' + self.peer_id
+            request = CheeseProtocol.get_open_transactions + ':' + self.peer_id + ':' + node_port
             Peer.send_message(request, peer_socket)
 
             listening_for_response = True

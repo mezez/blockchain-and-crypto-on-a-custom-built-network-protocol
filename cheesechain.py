@@ -15,13 +15,15 @@ class Cheesechain:
     REWARD_TRANSACTION_SIGNATURE = 'rewardtransactionsignature'
     MINING_REWARD = 10  # CHEESECOIN
 
-    def __init__(self, hosting_node_id):
+    def __init__(self, public_key, node_id):
         # starting cheese for the cheesechain
         raclette_cheese = Cheese(0, '', [], 100, 0)
         self.__my_cheesechain = [raclette_cheese]
         self.__open_transactions = []
+        self.node_id = node_id
         self.load_data()
-        self.hosting_node = hosting_node_id
+        self.public_key = public_key
+
 
     # @property
     # def chain(self):
@@ -39,7 +41,10 @@ class Cheesechain:
 
     def load_data(self):
         try:
-            with open(Cheesechain.CHEESECHAIN_FILE, mode='r') as file:
+            # with open(Cheesechain.CHEESECHAIN_FILE, mode='r') as file:
+
+            # each file will correspond to the node that created it
+            with open('cheesechain-{}.txt'.format(self.node_id), mode='r') as file:
                 file_contents = file.readlines()
 
                 cheesechain = json.loads(file_contents[0])  # first line is the cheesechain
@@ -69,7 +74,8 @@ class Cheesechain:
 
     def save_data(self):
         try:
-            with open(Cheesechain.CHEESECHAIN_FILE, mode='w') as file:
+            # with open(Cheesechain.CHEESECHAIN_FILE, mode='w') as file:
+            with open('cheesechain-{}.txt'.format(self.node_id), mode='w') as file:
                 # convert the cheesechain object into a dictionary that can be parsed to json
                 # this also involves a nested conversion of the transactions list of objects into a list of dictionaries
                 save_able_chain = [cheese.__dict__ for cheese in [
@@ -100,10 +106,10 @@ class Cheesechain:
         :param participant: a person involved in a transaction
         :return: a float cumulative cheesecoin balance of the participant
         """
-        if self.hosting_node is None:
+        if self.public_key is None:
             # no public key available
             return None
-        participant = self.hosting_node
+        participant = self.public_key
 
         tx_sender = [[tx.amount for tx in cheese.transactions if tx.sender == participant] for cheese in
                      self.__my_cheesechain]
@@ -146,7 +152,7 @@ class Cheesechain:
         """
         # transaction = {'sender': sender, 'recipient': recipient, 'amount': amount}
         # replace with ordered dictionary
-        if self.hosting_node is None:
+        if self.public_key is None:
             return False
         transaction = Transaction(sender, recipient, signature, amount)
 
@@ -167,7 +173,7 @@ class Cheesechain:
         Create a new cheese and add open transactions to it
         :return: True for success, False otherwise
         """
-        if self.hosting_node is None:
+        if self.public_key is None:
             return None
         last_cheese = self.__my_cheesechain[-1]  # last cheese in the chain
 
@@ -182,7 +188,7 @@ class Cheesechain:
 
         # use ordered dictionary instead
         # Rewards are only added if mining is successful
-        reward_transaction = Transaction(Cheesechain.CHEESECHAIN_REWARD_SYSTEM, self.hosting_node,
+        reward_transaction = Transaction(Cheesechain.CHEESECHAIN_REWARD_SYSTEM, self.public_key,
                                          Cheesechain.REWARD_TRANSACTION_SIGNATURE, Cheesechain.MINING_REWARD)
 
         # reward transactions will not appear in the global open transactions

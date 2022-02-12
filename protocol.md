@@ -62,7 +62,9 @@ This demonstrates sample code in python for connecting to the a peer by another 
 
 
 #-INFORM PEERS OF NEW CHEESE
-#-SHARE CHEESE TO PEER(S)
+#-SHARE CHEESE TO PEER(S)  
+
+
 #-GET CHEESES FROM PEER(S)
 This demonstrates protocol/sample code in python for requesting cheeses by a peer from another peer. Returns peer_id of the peer
 
@@ -73,7 +75,9 @@ This demonstrates protocol/sample code in python for requesting cheeses by a pee
 * 
 * Response: 
 * type = byte string
-* response string = CHAIN[{"sequence_number": 0, "parent_smell": "", "transactions": [], "nonce": 100, "timestamp": 0}, ...]
+* response string = CHAIN[{"sequence_number": 0, "parent_smell": "", "transactions": [], "nonce": 100, "timestamp": 0}, ...]  
+
+
 #-GET OPEN TRANSACTIONS FROM PEER(S)
 This demonstrates protocol/sample code in python for requesting open transactions by a peer from another peer. Returns peer_id of the peer
 
@@ -84,4 +88,7 @@ This demonstrates protocol/sample code in python for requesting open transaction
 * 
 * Response: 
 * type = byte string
-* response string = TR[{"sender": "sender public key", "recipient": "recipient public key", "amount": XXX}, ...]
+* response string = TR[{"sender": "sender public key", "recipient": "recipient public key", "amount": XXX}, ...]  
+
+
+# CHECK IF PEER IS STILL CONNECTED TO TRACKER

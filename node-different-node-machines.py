@@ -14,6 +14,8 @@ from cheese_network.my_helpers import MyHelpers
 app = Flask(__name__)
 CORS(app)
 # api = Api(app)
+wallet = Wallet()
+cheesechain = Cheesechain(wallet.public_key)
 
 peer_object = None
 peer_chains = []
@@ -32,7 +34,7 @@ def create_keys():
     wallet.create_keys()
     if wallet.save_keys():
         global cheesechain
-        cheesechain = Cheesechain(wallet.public_key, port)
+        cheesechain = Cheesechain(wallet.public_key)
         response = {
             'public_key': wallet.public_key,
             'private_key': wallet.private_key,
@@ -50,7 +52,7 @@ def create_keys():
 def load_keys():
     if wallet.load_keys():
         global cheesechain
-        cheesechain = Cheesechain(wallet.public_key, port)
+        cheesechain = Cheesechain(wallet.public_key)
         response = {
             'public_key': wallet.public_key,
             'private_key': wallet.private_key,
@@ -86,7 +88,7 @@ def get_chain():
     # connect to a network tracker if not connected already
     global peer_object
     if peer_object is None:
-        peer_object = Peer(port)
+        peer_object = Peer()
         # print(peer_object.__dict__)
         print("My Peer")
     if peer_object is not None:
@@ -110,16 +112,13 @@ def get_chain():
             print("connected to: ", s)
 
             # request chain
-            # port here is the port on which the node app is running
-            # necessary for differentiating wallets and chains of the different nodes
-            peer_chain = peer_object.request_chain(connected_peer_socket, port)
+            peer_chain = peer_object.request_chain(connected_peer_socket)
             peer_chain = peer_chain.replace(MyHelpers.chain_start_string, '')
             peer_chain = ast.literal_eval(peer_chain)
             peer_chains.append(peer_chain)
 
             # request open transactions
-            # port here is the port on which the node app is running
-            peer_tr = peer_object.request_open_transactions(connected_peer_socket, port)
+            peer_tr = peer_object.request_open_transactions(connected_peer_socket)
             peer_tr = peer_tr.replace(MyHelpers.transaction_start_string, '')
             peer_tr = ast.literal_eval(peer_tr)
             peer_open_transactions.append(peer_tr)
@@ -219,8 +218,4 @@ if __name__ == '__main__':
     port = args.port
     # run with python node.py -p [port]
     # default port will be 5005 if not specified
-
-    wallet = Wallet(port)
-    cheesechain = Cheesechain(wallet.public_key, port)
-
     app.run(host='0.0.0.0', port=port)
