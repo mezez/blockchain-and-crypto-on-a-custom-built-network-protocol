@@ -1,5 +1,6 @@
 class CheeseProtocol:
-    TRACKER_HOST = '0.0.0.0'
+    # TRACKER_HOST = '0.0.0.0'
+    TRACKER_HOST = 'localhost'
     TRACKER_PORT = 9999
     INVALID_PEER_ID_RESPONSE = "INVALID_PEER_ID"
     join_chain = "JOIN_CHAIN"

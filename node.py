@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, send_from_directory
 from flask_restful import Api, Resource
 from flask_cors import CORS, cross_origin
 
@@ -16,7 +16,7 @@ cheesechain = Cheesechain(wallet.public_key)
 
 @app.route('/', methods=['GET'])
 def get_ui():
-    return 'Home'
+    return send_from_directory('ui', 'node.html')
 
 
 @app.route('/wallet', methods=['POST'])
@@ -135,7 +135,7 @@ def get_open_transactions():
     return jsonify(transactions_dictionary), 200
 
 
-@app.route('/mine', methods=['GET'])
+@app.route('/mine', methods=['POST'])
 def mine():
     cheese = cheesechain.mine_cheese()  # cheese object
     if cheese is not None:
