@@ -26,69 +26,92 @@ This demonstrates protocol/sample code in python for requesting to join a cheese
 * PEER_HOST = 'localhost' - This is needed for other peers to connect to this peer
 * PEER_PORT = 9009 - This is need for other peers to connect to this peer
 
-* request_message: JOIN_CHAIN:PEER_HOST:PEER_PORT
+* request_message: PCONNECT:PEER_HOST:PEER_PORT
 * type = byte string
-* JOIN_CHAIN is the request command
+* PCONNECT is the request command
 * PEER_HOST is the connecting peer host
 * PEER_PORT is the connecting peer port
-* s.send(request_message.encode()) where is the socket created during connection  
+* s.send(request_message.encode()) where s is the socket created during connection  
 
 
 * Response: 
 * type = byte string
-* response string = PIDxxxxxxxxxxxxxxxxx
+* response string = TCONNECTACK:PEER_ID
+* PEER_ID is created by tracker for identifying the peer subsequently
 
 #-REQUEST LIST OF PEERS IN THE CHAIN
-This demonstrates protocol/sample code in python for requesting list of peers in a cheesechain to the tracker by a peer. Returns peer_id of the peer
+This demonstrates protocol/sample code in python for requesting list of peers in a cheesechain to the tracker by a peer.
 
-* request_message: GET_PEERS:PEER_ID
-* GET_PEERS is the request command
+* request_message: GETPEERS:PEER_ID
+* GETPEERS is the request command
 * PEER_ID is the ID of requesting peer
-* s.send(request_message.encode()) where is the socket created during connection
+* s.send(request_message.encode()) where s is the socket created during connection
 * 
 * Response: 
 * type = byte string
-* response string = CPSS[{"peer_id":"PIDbbbbb", "host":"0.9.X.X","port":"0.9.X.X", "socket":" SOCKET OBJECT"}, {"peer_id":"PIDbbbbb", "host":"0.9.X.X","port":"0.9.X.X", "socket":" SOCKET OBJECT"}, {"peer_id":"PIDbbbbb", "host":"0.9.X.X","port":"0.9.X.X", "socket":" SOCKET OBJECT"}, ...]
+* response string = GETPEERSACK[{"peer_id":"PIDbbbbb", "host":"0.9.X.X","port":"0.9.X.X", "socket":" SOCKET OBJECT"}, {"peer_id":"PIDbbbbb", "host":"0.9.X.X","port":"0.9.X.X", "socket":" SOCKET OBJECT"}, {"peer_id":"PIDbbbbb", "host":"0.9.X.X","port":"0.9.X.X", "socket":" SOCKET OBJECT"}, ...]
 
 #-CONNECT TO PEER
-This demonstrates sample code in python for connecting to the a peer by another peer
+This demonstrates sample code in python for connecting to a peer by another peer.
 * Connection Request: 
 * s = socket.create_connection((PEER_HOST, PEER_PORT))  
 
 
 * Connection Response: 
 * type = byte string
-* response string = Connection to peer [PEER_ID]
+* response string = PCONNECTACK:PEER_ID
+* PEER_ID is the peer id of the remote peer connected to 
 
 
-#-INFORM PEERS OF NEW CHEESE
-#-SHARE CHEESE TO PEER(S)  
+#-INFORM PEERS OF NEW CHEESE  
+This demonstrates protocol/sample code in python for broadcasting cheesechain with new cheese by a peer to other peer(s).
+
+* request_message: BRCHEESE[{"sequence_number": 0, "parent_smell": "", "transactions": [], "nonce": 100, "timestamp": 0}, ...]
+* BRCHEESE is the request command
+* s.send(request_message.encode()) where s is the socket created during connection
+* 
+* Response: 
+* type = byte string
+* response string = HCKACK
+* BRCHEESE is the confirmation of reception of broadcast by peer(s)
+* s.send(response.encode()) where s is the socket created during connection
 
 
 #-GET CHEESES FROM PEER(S)
-This demonstrates protocol/sample code in python for requesting cheeses by a peer from another peer. Returns peer_id of the peer
+This demonstrates protocol/sample code in python for requesting cheeses by a peer from another peer.
 
-* request_message: GET_CHAIN:PEER_ID
-* GET_PEERS is the request command
+* request_message: GETCHAIN:PEER_ID
+* GETCHAIN is the request command
 * PEER_ID is the ID of requesting peer
-* s.send(request_message.encode()) where is the socket created during connection
+* s.send(request_message.encode()) where s is the socket created during connection
 * 
 * Response: 
 * type = byte string
-* response string = CHAIN[{"sequence_number": 0, "parent_smell": "", "transactions": [], "nonce": 100, "timestamp": 0}, ...]  
+* response string = GETCHAINACK[{"sequence_number": 0, "parent_smell": "", "transactions": [], "nonce": 100, "timestamp": 0}, ...]  
 
 
 #-GET OPEN TRANSACTIONS FROM PEER(S)
-This demonstrates protocol/sample code in python for requesting open transactions by a peer from another peer. Returns peer_id of the peer
+This demonstrates protocol/sample code in python for requesting open transactions by a peer from another peer.
 
-* request_message: GET_OPEN_TRANSACTIONS:PEER_ID
-* GET_OPEN_TRANSACTIONS is the request command
+* request_message: GETOPENTRANSACTIONS:PEER_ID
+* GETOPENTRANSACTIONS is the request command
 * PEER_ID is the ID of requesting peer
-* s.send(request_message.encode()) where is the socket created during connection
+* s.send(request_message.encode()) where s is the socket created during connection
 * 
 * Response: 
 * type = byte string
-* response string = TR[{"sender": "sender public key", "recipient": "recipient public key", "amount": XXX}, ...]  
+* response string = GETOPENTRANSACTIONSACK[{"sender": "sender public key", "recipient": "recipient public key", "amount": XXX}, ...]  
 
 
 # CHECK IF PEER IS STILL CONNECTED TO TRACKER
+This demonstrates protocol/sample code in python for confirming if peer is still connected by tracker.
+
+* request_message: HCK
+* HCK is the request command
+* s.send(request_message.encode()) where s is the socket created during connection
+* 
+* Response: 
+* type = byte string
+* response string = HCKACK
+* HCKACK is the confirmation of active connection from peer to tracker
+* s.send(response.encode()) where s is the socket created during connection

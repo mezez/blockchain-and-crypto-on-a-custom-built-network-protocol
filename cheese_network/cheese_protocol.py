@@ -2,26 +2,44 @@ class CheeseProtocol:
     # TRACKER_HOST = '0.0.0.0'
     TRACKER_HOST = '127.0.0.1'
     TRACKER_PORT = 9999
-    INVALID_PEER_ID_RESPONSE = "INVALID_PEER_ID"
-    join_chain = "JOIN_CHAIN"
-    get_chain = "GET_CHAIN"
-    get_open_transactions = "GET_OPEN_TRANSACTIONS"
-    get_peers = "GET_PEERS"
-    new_cheese = "NEW_CHEESE"
+    INVALIDPEERID = "INVALIDPEERID"
+    PCONNECT = "PCONNECT"
+    PCONNECTACK = "PCONNECTACK"
+    TCONNECTACK = "TCONNECTACK"
+    GETCHAIN = "GETCHAIN"
+    GETCHAINACK = "GETCHAINACK"
+    GETOPENTRANSACTIONS = "GETOPENTRANSACTIONS"
+    GETOPENTRANSACTIONSACK = "GETOPENTRANSACTIONSACK"
+    GETPEERS = "GETPEERS"
+    GETPEERSACK = "GETPEERSACK"
+
+    BRCHEESE = "BRCHEESE"
+    BRCHEESEACK = "BRCHEESEACK"
+
+    BRACCEPT = "BRACCEPT"
+    BRREJECT = "BRREJECT"
+
+    HCK = "HCK"
+    HCKACK = "HCKACK"
+
+    peer_id_start_string = "PID"
+    connected_peers_start_string = "CPSS"
+    chain_start_string = "CHAIN"
+    transaction_start_string = "TR"
 
 
     @staticmethod
     def process_peer_request(request_body):
         # for tracker
-        if request_body.startswith(CheeseProtocol.join_chain):
-            return CheeseProtocol.join_chain
-        if request_body.startswith(CheeseProtocol.get_peers):
-            return CheeseProtocol.get_peers
+        if request_body.startswith(CheeseProtocol.PCONNECT):
+            return CheeseProtocol.PCONNECT
+        if request_body.startswith(CheeseProtocol.GETPEERS):
+            return CheeseProtocol.GETPEERS
         # for peers
-        if request_body.startswith(CheeseProtocol.get_chain):
-            return CheeseProtocol.get_chain
-        if request_body.startswith(CheeseProtocol.new_cheese):
-            return CheeseProtocol.new_cheese
+        if request_body.startswith(CheeseProtocol.GETCHAIN):
+            return CheeseProtocol.GETCHAIN
+        if request_body.startswith(CheeseProtocol.BRCHEESE):
+            return CheeseProtocol.BRCHEESE
 
     @staticmethod
     def validate_request(request_body, connected_peers):

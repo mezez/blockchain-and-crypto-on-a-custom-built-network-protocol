@@ -72,7 +72,7 @@ def handle_peer(socket, my_queue):
                 """process request"""
                 request_type = CheeseProtocol.process_peer_request(line)
 
-                if request_type == CheeseProtocol.join_chain:
+                if request_type == CheeseProtocol.PCONNECT:
                     # get peer host and port
                     request_body = line.split(':')
                     peer_host = request_body[1]
@@ -88,16 +88,17 @@ def handle_peer(socket, my_queue):
                     print('Tracker\'s connected peers')
                     print(connected_peers)
                     # send peer_id to client, id will be required for other requests
-                    socket.send(peer_id.encode())
+                    response = CheeseProtocol.TCONNECTACK+':'+peer_id
+                    socket.send(response.encode())
 
-                if request_type == CheeseProtocol.get_peers:
+                if request_type == CheeseProtocol.GETPEERS:
                     peer_data = CheeseProtocol.validate_request(line, connected_peers)
                     if peer_data is not False:
                         connected_peers_sublist = MyHelpers.get_part_of_peers(connected_peers, True)
-                        connected_peers_sublist = MyHelpers.connected_peers_start_string + connected_peers_sublist
+                        connected_peers_sublist = CheeseProtocol.GETPEERSACK + connected_peers_sublist
                         socket.send(connected_peers_sublist.encode())
                     else:
-                        response_message = CheeseProtocol.INVALID_PEER_ID_RESPONSE + '\r\n'
+                        response_message = CheeseProtocol.INVALIDPEERID + '\r\n'
                         socket.send(response_message.encode())
 
 

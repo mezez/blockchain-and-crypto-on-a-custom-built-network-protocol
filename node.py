@@ -9,6 +9,7 @@ import socket
 from wallet import Wallet
 from cheesechain import Cheesechain
 from cheese_network.peer import Peer
+from cheese_network.cheese_protocol import CheeseProtocol
 from cheese_network.my_helpers import MyHelpers
 
 app = Flask(__name__)
@@ -92,7 +93,7 @@ def get_chain():
     if peer_object is not None:
         print("PEER_OBJ")
         connected_peers = peer_object.request_connected_peers()
-        connected_peers = connected_peers.replace(MyHelpers.connected_peers_start_string, '')
+        connected_peers = connected_peers.replace(CheeseProtocol.GETPEERSACK, '')
         connected_peers = ast.literal_eval(connected_peers)
 
         # loop through the peers and request chains from them if the peer id doesn't match yours
@@ -113,17 +114,16 @@ def get_chain():
             # port here is the port on which the node app is running
             # necessary for differentiating wallets and chains of the different nodes
             peer_chain = peer_object.request_chain(connected_peer_socket, port)
-            peer_chain = peer_chain.replace(MyHelpers.chain_start_string, '')
+            peer_chain = peer_chain.replace(CheeseProtocol.GETCHAINACK, '')
             peer_chain = ast.literal_eval(peer_chain)
             peer_chains.append(peer_chain)
 
             # request open transactions
             # port here is the port on which the node app is running
             peer_tr = peer_object.request_open_transactions(connected_peer_socket, port)
-            peer_tr = peer_tr.replace(MyHelpers.transaction_start_string, '')
+            peer_tr = peer_tr.replace(CheeseProtocol.GETOPENTRANSACTIONSACK, '')
             peer_tr = ast.literal_eval(peer_tr)
             peer_open_transactions.append(peer_tr)
-
 
             count += 1
 
@@ -213,6 +213,7 @@ def mine():
 
 if __name__ == '__main__':
     from argparse import ArgumentParser
+
     parser = ArgumentParser()
     parser.add_argument('-p', '--port', type=int, default=5005)
     args = parser.parse_args()

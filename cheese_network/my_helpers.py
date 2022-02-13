@@ -60,7 +60,7 @@ class MyHelpers:
 
     @staticmethod
     def get_peer_chain(cheesechain):
-        chain_snapshot = cheesechain.get_chain()
+        chain_snapshot = cheesechain.GETCHAIN()
         # convert the cheesechain object to dictionary, to be able to parse to json
         chain_dictionary = [cheese.__dict__.copy() for cheese in chain_snapshot]
         # again, convert the transactions in block from objects to dictionary
@@ -70,6 +70,6 @@ class MyHelpers:
 
     @staticmethod
     def get_peer_open_transactions(cheesechain):
-        transactions = cheesechain.get_open_transactions()
+        transactions = cheesechain.GETOPENTRANSACTIONS()
         transactions_dictionary = [tr.__dict__ for tr in transactions]
         return json.dumps(transactions_dictionary)

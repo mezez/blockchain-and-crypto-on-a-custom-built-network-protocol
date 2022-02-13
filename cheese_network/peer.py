@@ -70,7 +70,7 @@ class Peer:
                 print('received connection', s)
 
                 # notify peer of successful connection
-                connection_message = "Connected to peer: " + self.peer_id
+                connection_message = CheeseProtocol.PCONNECTACK+":" + self.peer_id
                 s.send(connection_message.encode())
 
                 # and start a handle_peer thread every time
@@ -147,21 +147,23 @@ class Peer:
                 print("RECEIVED LINE:")
                 print("received", line)
                 if line == "Connection Successful":
-                    # request to join chain
-
+                    # request to join chain network
                     if self.host is None or self.port is None:
                         sys.exit('You need a host and port to set up your socket and connect to tracker')
 
                     # set up your socket and start listening
                     if self.main():
                         print("IN MAIN:")
-                        join_request = CheeseProtocol.join_chain + ":" + self.host + ":" + str(self.port)
+                        join_request = CheeseProtocol.PCONNECT + ":" + self.host + ":" + str(self.port)
                         Peer.send_message(join_request, self.tracker_socket)
 
-                if line.startswith(MyHelpers.peer_id_start_string):
+                # if line.startswith(MyHelpers.peer_id_start_string):
+                if line.startswith(CheeseProtocol.TCONNECTACK):
                     # peer id received
                     print("IN peer id:")
-                    self.peer_id = line
+                    request_body = line.split(':')
+                    pid = request_body[1]
+                    self.peer_id = pid
 
                     # once peer id is received, spin up a thread to listen  and
                     # to other things that may come from the tracker
@@ -186,13 +188,13 @@ class Peer:
                 else:
                     print("received", line)
 
-                    if line.startswith("Connected to peer:"):
+                    if line.startswith(CheeseProtocol.PCONNECTACK):
                         print(line)
 
                     """process request requests received from peers,"""
                     request_type = CheeseProtocol.process_peer_request(line)
 
-                    if request_type == CheeseProtocol.get_chain:
+                    if request_type == CheeseProtocol.GETCHAIN:
                         # load node, retrieve wallet and get cheesechain
                         request_body = line.split(':')
                         node_id = request_body[2]
@@ -203,10 +205,10 @@ class Peer:
                         chain = MyHelpers.get_peer_chain(cheesechain)
 
                         # convert to string and send to peer
-                        formatted_chain = MyHelpers.chain_start_string + chain
+                        formatted_chain = CheeseProtocol.GETCHAINACK + chain
                         socket.send(formatted_chain.encode())
 
-                    if request_type == CheeseProtocol.get_open_transactions:
+                    if request_type == CheeseProtocol.GETOPENTRANSACTIONS:
                         # load node, retrieve wallet and get open transactions
                         request_body = line.split(':')
                         node_id = request_body[2]
@@ -216,10 +218,10 @@ class Peer:
                         transactions = MyHelpers.get_peer_open_transactions(cheesechain)
 
                         # convert to string and send to peer
-                        formatted_tr = MyHelpers.chain_start_string + transactions
+                        formatted_tr = CheeseProtocol.GETOPENTRANSACTIONSACK + transactions
                         socket.send(formatted_tr.encode())
 
-                    if request_type == CheeseProtocol.new_cheese:
+                    if request_type == CheeseProtocol.BRCHEESE:
                         pass
 
 
@@ -229,7 +231,7 @@ class Peer:
     def request_connected_peers(self):
         print(self.tracker_socket)
         if self.peer_id is not None and self.tracker_socket is not None:
-            request = CheeseProtocol.get_peers + ':' + self.peer_id
+            request = CheeseProtocol.GETPEERS + ':' + self.peer_id
             Peer.send_message(request, self.tracker_socket)
 
             listening_for_response = True
@@ -244,7 +246,7 @@ class Peer:
                 else:
                     print("RECEIVED LINE (CONNECTED PEERS):")
                     print("received", line)
-                    if line.startswith(MyHelpers.connected_peers_start_string):
+                    if line.startswith(CheeseProtocol.GETPEERSACK):
                         connected_peers = line
                         listening_for_response = False
             return connected_peers
@@ -254,7 +256,7 @@ class Peer:
     def request_chain(self, peer_socket, node_port):
         print(self.tracker_socket)
         if self.peer_id is not None and self.tracker_socket is not None:
-            request = CheeseProtocol.get_chain + ':' + self.peer_id + ':' + node_port
+            request = CheeseProtocol.GETCHAIN + ':' + self.peer_id + ':' + node_port
             Peer.send_message(request, peer_socket)
 
             listening_for_response = True
@@ -269,7 +271,7 @@ class Peer:
                 else:
                     print("RECEIVED LINE (PEER CHAIN):")
                     print("received", line)
-                    if line.startswith(MyHelpers.chain_start_string):
+                    if line.startswith(CheeseProtocol.GETCHAINACK):
                         peer_chain = line
                         listening_for_response = False
             return peer_chain
@@ -279,7 +281,7 @@ class Peer:
     def request_open_transactions(self, peer_socket, node_port):
         print(self.tracker_socket)
         if self.peer_id is not None and self.tracker_socket is not None:
-            request = CheeseProtocol.get_open_transactions + ':' + self.peer_id + ':' + node_port
+            request = CheeseProtocol.GETOPENTRANSACTIONS + ':' + self.peer_id + ':' + node_port
             Peer.send_message(request, peer_socket)
 
             listening_for_response = True
@@ -294,7 +296,7 @@ class Peer:
                 else:
                     print("RECEIVED LINE (PEER TR):")
                     print("received", line)
-                    if line.startswith(MyHelpers.transaction_start_string):
+                    if line.startswith(CheeseProtocol.GETOPENTRANSACTIONSACK):
                         peer_tr = line
                         listening_for_response = False
             return peer_tr
