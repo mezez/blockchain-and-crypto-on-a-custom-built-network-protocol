@@ -20,6 +20,7 @@ peer_object = None
 peer_chains = []
 peer_open_transactions = []
 connected_peers = None
+just_connecting = False
 
 """routes"""
 
@@ -89,7 +90,9 @@ def get_chain():
     # connect to a network tracker if not connected already
     global peer_object
     global connected_peers
+    global just_connecting
     if peer_object is None:
+        just_connecting = True
         peer_object = Peer(port)
         # print(peer_object.__dict__)
     if peer_object is not None:
@@ -97,42 +100,45 @@ def get_chain():
             connected_peers = get_connected_pears(peer_object)
 
         # loop through the peers and request chains from them if the peer id doesn't match yours
-        count = 0
-        for connected_peer in connected_peers:
-            # TODO WRAP IN TRY BLOCK AFTER TESTS
-            connected_peer_id = connected_peer['peer_id']
-            connected_peer_host = connected_peer['host']
-            connected_peer_port = connected_peer['port']
-            connected_peer_socket = connected_peer['socket']
-            # connect to peer
-            print("Connecting to peer with details: ")
-            print("Host: ", connected_peer_host)
-            print("port: ", connected_peer_port)
-            s = socket.create_connection((connected_peer_host, connected_peer_port))
-            print("connected to: ", s)
+        if just_connecting:
+            count = 0
+            for connected_peer in connected_peers:
+                # TODO WRAP IN TRY BLOCK AFTER TESTS
+                connected_peer_id = connected_peer['peer_id']
+                if connected_peer_id != peer_object.peer_id:
+                    # don't connect to yourself
+                    connected_peer_host = connected_peer['host']
+                    connected_peer_port = connected_peer['port']
+                    connected_peer_socket = connected_peer['socket']
+                    # connect to peer
+                    print("Connecting to peer with details: ")
+                    print("Host: ", connected_peer_host)
+                    print("port: ", connected_peer_port)
+                    s = socket.create_connection((connected_peer_host, connected_peer_port))
+                    print("connected to: ", s)
 
-            # request chain
-            # port here is the port on which the node app is running
-            # necessary for differentiating wallets and chains of the different nodes
-            peer_chain = get_peer_chain(peer_object, connected_peer_socket)
-            # TODO SEND DISCONNECTION MESSAGE
-            connected_peer_socket.close()  # close connection after retrieving chain
-            peer_chains.append(peer_chain)
+                    # request chain
+                    # port here is the port on which the node app is running
+                    # necessary for differentiating wallets and chains of the different nodes
+                    peer_chain = get_peer_chain(peer_object, connected_peer_socket)
+                    # TODO SEND DISCONNECTION MESSAGE
+                    connected_peer_socket.close()  # close connection after retrieving chain
+                    peer_chains.append(peer_chain)
 
-            # request open transactions
-            # port here is the port on which the node app is running
-            peer_tr = get_peer_transactions(peer_object, connected_peer_socket)
-            peer_open_transactions.append(peer_tr)
+                    # request open transactions
+                    # port here is the port on which the node app is running
+                    peer_tr = get_peer_transactions(peer_object, connected_peer_socket)
+                    peer_open_transactions.append(peer_tr)
 
-            # disconnect from peer
+                    # disconnect from peer
 
-            count += 1
+                count += 1
 
-        sys.exit("bye for now")
-    # compare their chains among themselves and with yours, pick the longest chain
-    # update your chain if it is outdated, notify others with different chains if so
-    # return the up-to-date chain
-
+            sys.exit("bye for now")
+            # compare their chains among themselves and with yours, pick the longest chain
+            # update your chain if it is outdated, notify others with different chains if so
+            # return the up-to-date chain
+            just_connecting = False
     chain_snapshot = cheesechain.get_chain()
     # convert the cheesechain object to dictionary, to be able to parse to json
     chain_dictionary = [cheese.__dict__.copy() for cheese in chain_snapshot]
@@ -199,49 +205,55 @@ def get_open_transactions():
     # connect to a network tracker if not connected already
     global peer_object
     global connected_peers
+    global just_connecting
     if peer_object is None:
+        just_connecting = True
         peer_object = Peer(port)
         # print(peer_object.__dict__)
     if peer_object is not None:
         if connected_peers is None:
             connected_peers = get_connected_pears(peer_object)
 
-        # loop through the peers and request chains from them if the peer id doesn't match yours
-        count = 0
-        for connected_peer in connected_peers:
-            # TODO WRAP IN TRY BLOCK AFTER TESTS
-            connected_peer_id = connected_peer['peer_id']
-            connected_peer_host = connected_peer['host']
-            connected_peer_port = connected_peer['port']
-            connected_peer_socket = connected_peer['socket']
-            # connect to peer
-            print("Connecting to peer with details: ")
-            print("Host: ", connected_peer_host)
-            print("port: ", connected_peer_port)
-            s = socket.create_connection((connected_peer_host, connected_peer_port))
-            print("connected to: ", s)
+        if just_connecting:
+            # loop through the peers and request chains from them if the peer id doesn't match yours
+            count = 0
+            for connected_peer in connected_peers:
+                # TODO WRAP IN TRY BLOCK AFTER TESTS
+                connected_peer_id = connected_peer['peer_id']
+                if connected_peer_id != peer_object.peer_id:
+                    # don't connect to yourself
+                    connected_peer_host = connected_peer['host']
+                    connected_peer_port = connected_peer['port']
+                    connected_peer_socket = connected_peer['socket']
+                    # connect to peer
+                    print("Connecting to peer with details: ")
+                    print("Host: ", connected_peer_host)
+                    print("port: ", connected_peer_port)
+                    s = socket.create_connection((connected_peer_host, connected_peer_port))
+                    print("connected to: ", s)
 
-            # request chain
-            # port here is the port on which the node app is running
-            # necessary for differentiating wallets and chains of the different nodes
-            peer_chain = get_peer_chain(peer_object, connected_peer_socket)
-            # TODO SEND DISCONNECTION MESSAGE
-            connected_peer_socket.close()  # close connection after retrieving chain
-            peer_chains.append(peer_chain)
+                    # request chain
+                    # port here is the port on which the node app is running
+                    # necessary for differentiating wallets and chains of the different nodes
+                    peer_chain = get_peer_chain(peer_object, connected_peer_socket)
+                    # TODO SEND DISCONNECTION MESSAGE
+                    connected_peer_socket.close()  # close connection after retrieving chain
+                    peer_chains.append(peer_chain)
 
-            # request open transactions
-            # port here is the port on which the node app is running
-            peer_tr = get_peer_transactions(peer_object, connected_peer_socket)
-            peer_open_transactions.append(peer_tr)
+                    # request open transactions
+                    # port here is the port on which the node app is running
+                    peer_tr = get_peer_transactions(peer_object, connected_peer_socket)
+                    peer_open_transactions.append(peer_tr)
 
-            # disconnect from peer
+                    # disconnect from peer
 
-            count += 1
+                count += 1
 
-        sys.exit("bye for now")
-    # compare their TR among themselves and with yours, verify and add valid ones to your sys
-    # update your tr if it is outdated, notify others with different tr if so
-    # return the up-to-date tr
+            sys.exit("bye for now")
+            # compare their TR among themselves and with yours, verify and add valid ones to your sys
+            # update your tr if it is outdated, notify others with different tr if so
+            # return the up-to-date tr
+            just_connecting = False
     transactions = cheesechain.get_open_transactions()  # transactions object
     transactions_dictionary = [tr.__dict__ for tr in transactions]
     return jsonify(transactions_dictionary), 200
@@ -326,6 +338,7 @@ def add_transaction_from_remote_peer(tr):
 def broadcast_cheese_to_peers(cheese):
     # connect to a network tracker if not connected already
     # TODO WRAP IN TRY BLOCK AFTER TESTS
+    # try: except: continue # continue on exception
     global peer_object
     global connected_peers
     if peer_object is None:
@@ -357,6 +370,7 @@ def broadcast_cheese_to_peers(cheese):
 def broadcast_tr_to_peers(recipient, sender, signature, amount):
     # connect to a network tracker if not connected already
     # TODO WRAP IN TRY BLOCK AFTER TESTS
+    # try: except: continue # continue on exception
     global peer_object
     global connected_peers
     if peer_object is None:

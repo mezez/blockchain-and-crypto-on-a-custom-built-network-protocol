@@ -162,8 +162,8 @@ class Cheesechain:
         """
         # transaction = {'sender': sender, 'recipient': recipient, 'amount': amount}
         # replace with ordered dictionary
-        if self.public_key is None:
-            return False
+        # if self.public_key is None:
+        #    return False
         transaction = Transaction(sender, recipient, signature, amount)
 
         # confirm that there is enough money in sender's account and transaction has a valid signature
@@ -220,7 +220,8 @@ class Cheesechain:
         transactions = [Transaction(tr['sender'], tr['recipient'], tr['signature'], tr['amount']) for tr in cheese['transactions']]
 
         # confirm proof of work
-        is_valid = Verification.valid_proof(transactions, cheese['previous_smell'], cheese['nonce'])
+        is_valid = Verification.valid_proof(transactions[:-1], cheese['previous_smell'], cheese['nonce'])
+        # transactions[:-1] : remove the reward transaction from the validation process
 
         # confirm if the hash of our last cheese matches the last cheese stored in the incoming cheese
         hashes_match = hash_cheese(self.get_chain()[-1]) == cheese['previous_smell']
@@ -229,5 +230,15 @@ class Cheesechain:
             return False
         converted_cheese = Cheese(cheese['sequence_number'], cheese['previous_smell'], transactions, cheese['nonce'], cheese['timestamp'])
         self.__my_cheesechain.append(converted_cheese)
+        # update my open transactions
+        stored_transactions = self.__open_transactions[:]
+        for incoming_transaction in cheese['transactions']:
+            for open_transaction in stored_transactions:
+                if open_transaction.sender == incoming_transaction['sender'] and open_transaction.recipient == incoming_transaction['recipient'] and open_transaction.amount == incoming_transaction['amount'] and open_transaction.signature == incoming_transaction['signature']:
+                    try:
+                        self.__open_transactions.remove(open_transaction)
+                    except ValueError:
+                        print("Item already removed")
+
         self.save_data()
         return True
