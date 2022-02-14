@@ -94,6 +94,18 @@ class Cheesechain:
         except IOError:
             print('Data could not be saved')
 
+    def overwrite_data(self, save_able_chain, save_able_tr):
+        try:
+            # with open(Cheesechain.CHEESECHAIN_FILE, mode='w') as file:
+            with open('cheesechain-{}.txt'.format(self.node_id), mode='w') as file:
+
+                file.write(json.dumps(save_able_chain))
+                file.write('\n')
+                # convert the list of transactions object into a list of transactions dictionary to be able to parse to json
+                file.write(json.dumps(save_able_tr))
+        except IOError:
+            print('Data could not be saved')
+
     def proof_of_work(self):
         last_cheese = self.__my_cheesechain[-1]
         parent_smell = hash_cheese(last_cheese)

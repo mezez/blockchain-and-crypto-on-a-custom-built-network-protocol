@@ -208,6 +208,8 @@ class Peer:
                         wallet.load_keys()
                         cheesechain = Cheesechain(wallet.public_key, node_id)
                         chain = MyHelpers.get_peer_chain(cheesechain)
+                        print('RETRIEVED CHAIN')
+                        print(chain)
 
                         # convert to string and send to peer
                         formatted_chain = CheeseProtocol.GETCHAINACK + chain
@@ -223,6 +225,8 @@ class Peer:
                         wallet.load_keys()
                         cheesechain = Cheesechain(wallet.public_key, node_id)
                         transactions = MyHelpers.get_peer_open_transactions(cheesechain)
+                        print('RETRIEVED TRANSACTIONS')
+                        print(transactions)
 
                         # convert to string and send to peer
                         formatted_tr = CheeseProtocol.GETOPENTRANSACTIONSACK + transactions
@@ -323,7 +327,6 @@ class Peer:
             return False
 
     def request_chain(self, peer_socket):
-        print(self.tracker_socket)
         if self.peer_id is not None:
             request = CheeseProtocol.GETCHAIN + ':' + self.peer_id
             Peer.send_message(request, peer_socket)
@@ -331,7 +334,7 @@ class Peer:
             listening_for_response = True
             peer_chain = None
             while listening_for_response:
-                line = MyHelpers.custom_read(self.tracker_socket)
+                line = MyHelpers.custom_read(peer_socket)
                 if line is None:
                     # end the loop when the connection is closed (readLine returns None or throws an exception)
                     print("No response received")
@@ -348,7 +351,6 @@ class Peer:
             return False
 
     def request_open_transactions(self, peer_socket):
-        print(self.tracker_socket)
         if self.peer_id is not None:
             request = CheeseProtocol.GETOPENTRANSACTIONS + ':' + self.peer_id
             Peer.send_message(request, peer_socket)
@@ -356,7 +358,7 @@ class Peer:
             listening_for_response = True
             peer_tr = None
             while listening_for_response:
-                line = MyHelpers.custom_read(self.tracker_socket)
+                line = MyHelpers.custom_read(peer_socket)
                 if line is None:
                     # end the loop when the connection is closed (readLine returns None or throws an exception)
                     print("No response received")

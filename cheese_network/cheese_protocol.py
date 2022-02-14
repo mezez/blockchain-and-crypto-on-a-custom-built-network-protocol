@@ -47,6 +47,10 @@ class CheeseProtocol:
             return CheeseProtocol.GETCHAIN
         if request_body.startswith(CheeseProtocol.GETCHAINACK):
             return CheeseProtocol.GETCHAINACK
+        if request_body.startswith(CheeseProtocol.GETOPENTRANSACTIONS):
+            return CheeseProtocol.GETOPENTRANSACTIONS
+        if request_body.startswith(CheeseProtocol.GETOPENTRANSACTIONSACK):
+            return CheeseProtocol.GETOPENTRANSACTIONSACK
         if request_body.startswith(CheeseProtocol.BRCHEESE):
             return CheeseProtocol.BRCHEESE
         if request_body.startswith(CheeseProtocol.BRCHEESEACK):

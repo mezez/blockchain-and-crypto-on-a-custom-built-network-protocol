@@ -1,4 +1,5 @@
 import queue
+import uuid
 from threading import Thread
 import socket
 from cheese_network.my_helpers import MyHelpers
@@ -77,7 +78,8 @@ def handle_peer(socket, my_queue):
                     request_body = line.split(':')
                     peer_host = request_body[1]
                     peer_port = request_body[2]
-                    peer_id = MyHelpers.generate_peer_id()
+                    # peer_id = MyHelpers.generate_peer_id()
+                    peer_id = MyHelpers.peer_id_start_string + uuid.uuid4().hex[:6].upper()
                     peer_info = {
                         'peer_id': peer_id,
                         'host': peer_host,

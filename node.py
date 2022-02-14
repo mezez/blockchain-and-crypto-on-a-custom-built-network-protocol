@@ -7,7 +7,11 @@ import ast
 import socket
 
 from wallet import Wallet
+from transaction import Transaction
+from cheese import Cheese
 from cheesechain import Cheesechain
+from utils.verification import Verification
+from utils.utils import GeneralUtils
 from cheese_network.peer import Peer
 from cheese_network.cheese_protocol import CheeseProtocol
 from cheese_network.my_helpers import MyHelpers
@@ -20,7 +24,7 @@ peer_object = None
 peer_chains = []
 peer_open_transactions = []
 connected_peers = None
-just_connecting = False
+just_connecting = True
 
 """routes"""
 
@@ -92,7 +96,6 @@ def get_chain():
     global connected_peers
     global just_connecting
     if peer_object is None:
-        just_connecting = True
         peer_object = Peer(port)
         # print(peer_object.__dict__)
     if peer_object is not None:
@@ -101,6 +104,7 @@ def get_chain():
 
         # loop through the peers and request chains from them if the peer id doesn't match yours
         if just_connecting:
+            print("just connecting")
             count = 0
             for connected_peer in connected_peers:
                 # TODO WRAP IN TRY BLOCK AFTER TESTS
@@ -109,7 +113,7 @@ def get_chain():
                     # don't connect to yourself
                     connected_peer_host = connected_peer['host']
                     connected_peer_port = connected_peer['port']
-                    connected_peer_socket = connected_peer['socket']
+                    # connected_peer_socket = connected_peer['socket']
                     # connect to peer
                     print("Connecting to peer with details: ")
                     print("Host: ", connected_peer_host)
@@ -120,25 +124,51 @@ def get_chain():
                     # request chain
                     # port here is the port on which the node app is running
                     # necessary for differentiating wallets and chains of the different nodes
-                    peer_chain = get_peer_chain(peer_object, connected_peer_socket)
-                    # TODO SEND DISCONNECTION MESSAGE
-                    connected_peer_socket.close()  # close connection after retrieving chain
+                    peer_chain = get_peer_chain(peer_object, s)
                     peer_chains.append(peer_chain)
 
                     # request open transactions
                     # port here is the port on which the node app is running
-                    peer_tr = get_peer_transactions(peer_object, connected_peer_socket)
+                    peer_tr = get_peer_transactions(peer_object, s)
                     peer_open_transactions.append(peer_tr)
+                    # TODO SEND DISCONNECTION MESSAGE
+                    s.close()  # close connection after retrieving chain
 
                     # disconnect from peer
 
                 count += 1
 
-            sys.exit("bye for now")
+            # sys.exit("bye for now")
             # compare their chains among themselves and with yours, pick the longest chain
+            chain_snapshot = cheesechain.get_chain()
+            chain_dictionary = [cheese.__dict__.copy() for cheese in chain_snapshot]
+            # again, convert the transactions in cheese from objects to dictionary
+            for cheese_dict in chain_dictionary:
+                cheese_dict['transactions'] = [tr.__dict__ for tr in cheese_dict['transactions']]
+
+            for ch in peer_chains:
+                # validate chain
+                formatted_cheesechain = []
+                for cheese in ch:
+                    cheese = GeneralUtils.convert_cheese_dictionary_to_object(cheese)
+                    formatted_cheesechain.append(cheese)
+                verified = Verification.verify_chain(formatted_cheesechain)
+                if verified:
+                    print('verified')
+                    print(len(ch))
+                    print(len(chain_dictionary))
+                    if len(ch) > len(chain_dictionary):
+                        chain_dictionary = ch
+                        my_open_tr = cheesechain.get_open_transactions()
+                        save_able_tr = GeneralUtils.convert_transaction_object_to_dictionary(my_open_tr)
+                        cheesechain.overwrite_data(chain_dictionary, save_able_tr)
+                else:
+                    continue
             # update your chain if it is outdated, notify others with different chains if so
             # return the up-to-date chain
             just_connecting = False
+
+    cheesechain.load_data()
     chain_snapshot = cheesechain.get_chain()
     # convert the cheesechain object to dictionary, to be able to parse to json
     chain_dictionary = [cheese.__dict__.copy() for cheese in chain_snapshot]
@@ -224,7 +254,7 @@ def get_open_transactions():
                     # don't connect to yourself
                     connected_peer_host = connected_peer['host']
                     connected_peer_port = connected_peer['port']
-                    connected_peer_socket = connected_peer['socket']
+                    # connected_peer_socket = connected_peer['socket']
                     # connect to peer
                     print("Connecting to peer with details: ")
                     print("Host: ", connected_peer_host)
@@ -235,14 +265,14 @@ def get_open_transactions():
                     # request chain
                     # port here is the port on which the node app is running
                     # necessary for differentiating wallets and chains of the different nodes
-                    peer_chain = get_peer_chain(peer_object, connected_peer_socket)
+                    peer_chain = get_peer_chain(peer_object, s)
                     # TODO SEND DISCONNECTION MESSAGE
-                    connected_peer_socket.close()  # close connection after retrieving chain
+                    s.close()  # close connection after retrieving chain
                     peer_chains.append(peer_chain)
 
                     # request open transactions
                     # port here is the port on which the node app is running
-                    peer_tr = get_peer_transactions(peer_object, connected_peer_socket)
+                    peer_tr = get_peer_transactions(peer_object, s)
                     peer_open_transactions.append(peer_tr)
 
                     # disconnect from peer
@@ -355,7 +385,7 @@ def broadcast_cheese_to_peers(cheese):
             connected_peer_id = connected_peer['peer_id']
             connected_peer_host = connected_peer['host']
             connected_peer_port = connected_peer['port']
-            connected_peer_socket = connected_peer['socket']
+            # connected_peer_socket = connected_peer['socket']
             # connect to peer
             print("Connecting to peer with details: ")
             print("Host: ", connected_peer_host)
@@ -364,7 +394,7 @@ def broadcast_cheese_to_peers(cheese):
             print("connected to: ", s)
 
             #  send cheese and disconnect once acknowledged
-            peer_object.share_cheese(cheese, connected_peer_socket, peer_object)
+            peer_object.share_cheese(cheese, s, peer_object)
 
 
 def broadcast_tr_to_peers(recipient, sender, signature, amount):
@@ -387,7 +417,7 @@ def broadcast_tr_to_peers(recipient, sender, signature, amount):
             connected_peer_id = connected_peer['peer_id']
             connected_peer_host = connected_peer['host']
             connected_peer_port = connected_peer['port']
-            connected_peer_socket = connected_peer['socket']
+            # connected_peer_socket = connected_peer['socket']
             # connect to peer
             print("Connecting to peer with details: ")
             print("Host: ", connected_peer_host)
@@ -397,7 +427,7 @@ def broadcast_tr_to_peers(recipient, sender, signature, amount):
 
             #  send transaction and disconnect once acknowledged
             tr = {'recipient': recipient, 'sender': sender, 'signature': signature, 'amount': amount}
-            peer_object.share_added_transaction(tr, connected_peer_socket, peer_object)
+            peer_object.share_added_transaction(tr, s, peer_object)
 
 
 
@@ -412,11 +442,12 @@ if __name__ == '__main__':
     parser.add_argument('-p', '--port', type=int, default=5005)
     args = parser.parse_args()
     port = args.port
+    print("server:" + str(port))
     # run with python node.py -p [port]
     # default port will be 5005 if not specified
 
     wallet = Wallet(port)
     cheesechain = Cheesechain(wallet.public_key, port)
-    peer_object = Peer(port)
+    # peer_object = Peer(port)
 
     app.run(host='0.0.0.0', port=port)

@@ -42,34 +42,50 @@ class MyHelpers:
 
     @staticmethod
     def generate_peer_id():
-        peer_id = MyHelpers.peer_id_start_string + uuid.uuid5(uuid.NAMESPACE_URL, 'mez').hex
+        peer_id = MyHelpers.peer_id_start_string + uuid.uuid4().hex[:6].upper().hex
         return peer_id
 
     @staticmethod
     def get_part_of_peers(connected_peers, convert_to_string=False):
+        connected_peers_ = []
         if len(connected_peers) <= 10:
+            for connected_peer in connected_peers:
+                data = {
+                    'peer_id': connected_peer['peer_id'],
+                    'host': connected_peer['host'],
+                    'port': connected_peer['port']
+                }
+                connected_peers_.append(data)
             if convert_to_string is True:
-                return json.dumps(connected_peers)
-            return connected_peers
+                return json.dumps(connected_peers_)
+
+            return connected_peers_
 
         # randomly select a part of the list, containing 10 peers
         connected_peers_sublist = random.sample(connected_peers, 10)
+        for connected_peer in connected_peers_sublist:
+            data = {
+                'peer_id': connected_peer['peer_id'],
+                'host': connected_peer['host'],
+                'port': connected_peer['port']
+            }
+            connected_peers_.append(data)
         if convert_to_string is True:
-            return json.dumps(connected_peers_sublist)
-        return connected_peers_sublist
+            return json.dumps(connected_peers_)
+        return connected_peers_
 
     @staticmethod
     def get_peer_chain(cheesechain):
-        chain_snapshot = cheesechain.GETCHAIN()
+        chain_snapshot = cheesechain.get_chain()
         # convert the cheesechain object to dictionary, to be able to parse to json
         chain_dictionary = [cheese.__dict__.copy() for cheese in chain_snapshot]
         # again, convert the transactions in block from objects to dictionary
         for cheese_dict in chain_dictionary:
             cheese_dict['transactions'] = [tr.__dict__ for tr in cheese_dict['transactions']]
-        return json.dumps(chain_dictionary)\
+        return json.dumps(chain_dictionary)
 
     @staticmethod
     def get_peer_open_transactions(cheesechain):
-        transactions = cheesechain.GETOPENTRANSACTIONS()
+        transactions = cheesechain.get_open_transactions()
         transactions_dictionary = [tr.__dict__ for tr in transactions]
         return json.dumps(transactions_dictionary)
