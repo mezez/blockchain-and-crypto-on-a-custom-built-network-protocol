@@ -74,6 +74,20 @@ This demonstrates protocol/sample code in python for broadcasting cheesechain wi
 * type = byte string
 * response string = HCKACK
 * BRCHEESE is the confirmation of reception of broadcast by peer(s)
+* s.send(response.encode()) where s is the socket created during connection  
+
+
+#-INFORM PEERS OF NEW OPEN TRANSACTION  
+This demonstrates protocol/sample code in python for broadcasting newly added transaction by a peer to other peer(s).
+
+* request_message: BRTRANSACTION{"sender": "sender public key", "recipient": "recipient public key", "amount": XXX}
+* BRTRANSACTION is the request command
+* s.send(request_message.encode()) where s is the socket created during connection
+* 
+* Response: 
+* type = byte string
+* response string = BRTRANSACTIONACK
+* BRTRANSACTIONACK is the confirmation of reception of broadcast by peer(s)
 * s.send(response.encode()) where s is the socket created during connection
 
 

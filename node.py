@@ -19,6 +19,7 @@ CORS(app)
 peer_object = None
 peer_chains = []
 peer_open_transactions = []
+connected_peers = None
 
 """routes"""
 
@@ -84,21 +85,21 @@ def get_balance():
 
 @app.route('/chain', methods=['GET'])
 def get_chain():
+    # TODO WRAP IN TRY BLOCK AFTER TESTS
     # connect to a network tracker if not connected already
     global peer_object
+    global connected_peers
     if peer_object is None:
         peer_object = Peer(port)
         # print(peer_object.__dict__)
-        print("My Peer")
     if peer_object is not None:
-        print("PEER_OBJ")
-        connected_peers = peer_object.request_connected_peers()
-        connected_peers = connected_peers.replace(CheeseProtocol.GETPEERSACK, '')
-        connected_peers = ast.literal_eval(connected_peers)
+        if connected_peers is None:
+            connected_peers = get_connected_pears(peer_object)
 
         # loop through the peers and request chains from them if the peer id doesn't match yours
         count = 0
         for connected_peer in connected_peers:
+            # TODO WRAP IN TRY BLOCK AFTER TESTS
             connected_peer_id = connected_peer['peer_id']
             connected_peer_host = connected_peer['host']
             connected_peer_port = connected_peer['port']
@@ -107,30 +108,31 @@ def get_chain():
             print("Connecting to peer with details: ")
             print("Host: ", connected_peer_host)
             print("port: ", connected_peer_port)
-            s = socket.create_connection((connected_peer_host, connected_peer_host))
+            s = socket.create_connection((connected_peer_host, connected_peer_port))
             print("connected to: ", s)
 
             # request chain
             # port here is the port on which the node app is running
             # necessary for differentiating wallets and chains of the different nodes
-            peer_chain = peer_object.request_chain(connected_peer_socket, port)
-            peer_chain = peer_chain.replace(CheeseProtocol.GETCHAINACK, '')
-            peer_chain = ast.literal_eval(peer_chain)
+            peer_chain = get_peer_chain(peer_object, connected_peer_socket)
+            # TODO SEND DISCONNECTION MESSAGE
+            connected_peer_socket.close()  # close connection after retrieving chain
             peer_chains.append(peer_chain)
 
             # request open transactions
             # port here is the port on which the node app is running
-            peer_tr = peer_object.request_open_transactions(connected_peer_socket, port)
-            peer_tr = peer_tr.replace(CheeseProtocol.GETOPENTRANSACTIONSACK, '')
-            peer_tr = ast.literal_eval(peer_tr)
+            peer_tr = get_peer_transactions(peer_object, connected_peer_socket)
             peer_open_transactions.append(peer_tr)
+
+            # disconnect from peer
 
             count += 1
 
         sys.exit("bye for now")
-        # compare their chains among themselves and with yours, pick the longest chain
-        # update your chain if it is outdated, notify others with different chains if so
-        # return the up-to-date chain
+    # compare their chains among themselves and with yours, pick the longest chain
+    # update your chain if it is outdated, notify others with different chains if so
+    # return the up-to-date chain
+
     chain_snapshot = cheesechain.get_chain()
     # convert the cheesechain object to dictionary, to be able to parse to json
     chain_dictionary = [cheese.__dict__.copy() for cheese in chain_snapshot]
@@ -165,7 +167,14 @@ def add_transaction():
     signature = wallet.sign_transaction(wallet.public_key, recipient, amount)
 
     transaction_added = cheesechain.add_transaction(recipient, wallet.public_key, signature, amount)
+
     if transaction_added:
+        # inform other peers gotten from tracker of new transaction verified and added to open transactions
+        # each peer will verify and also try to add the transaction to their open transactions and try to broadcast
+        # to their own peers as well
+        broadcast_tr_to_peers(recipient, wallet.public_key, signature, amount)
+
+        # send response
         response = {
             'message': 'Transaction added successfully',
             'transaction': {
@@ -186,6 +195,53 @@ def add_transaction():
 
 @app.route('/transactions', methods=['GET'])
 def get_open_transactions():
+    # TODO WRAP IN TRY BLOCK AFTER TESTS
+    # connect to a network tracker if not connected already
+    global peer_object
+    global connected_peers
+    if peer_object is None:
+        peer_object = Peer(port)
+        # print(peer_object.__dict__)
+    if peer_object is not None:
+        if connected_peers is None:
+            connected_peers = get_connected_pears(peer_object)
+
+        # loop through the peers and request chains from them if the peer id doesn't match yours
+        count = 0
+        for connected_peer in connected_peers:
+            # TODO WRAP IN TRY BLOCK AFTER TESTS
+            connected_peer_id = connected_peer['peer_id']
+            connected_peer_host = connected_peer['host']
+            connected_peer_port = connected_peer['port']
+            connected_peer_socket = connected_peer['socket']
+            # connect to peer
+            print("Connecting to peer with details: ")
+            print("Host: ", connected_peer_host)
+            print("port: ", connected_peer_port)
+            s = socket.create_connection((connected_peer_host, connected_peer_port))
+            print("connected to: ", s)
+
+            # request chain
+            # port here is the port on which the node app is running
+            # necessary for differentiating wallets and chains of the different nodes
+            peer_chain = get_peer_chain(peer_object, connected_peer_socket)
+            # TODO SEND DISCONNECTION MESSAGE
+            connected_peer_socket.close()  # close connection after retrieving chain
+            peer_chains.append(peer_chain)
+
+            # request open transactions
+            # port here is the port on which the node app is running
+            peer_tr = get_peer_transactions(peer_object, connected_peer_socket)
+            peer_open_transactions.append(peer_tr)
+
+            # disconnect from peer
+
+            count += 1
+
+        sys.exit("bye for now")
+    # compare their TR among themselves and with yours, verify and add valid ones to your sys
+    # update your tr if it is outdated, notify others with different tr if so
+    # return the up-to-date tr
     transactions = cheesechain.get_open_transactions()  # transactions object
     transactions_dictionary = [tr.__dict__ for tr in transactions]
     return jsonify(transactions_dictionary), 200
@@ -197,6 +253,8 @@ def mine():
     if cheese is not None:
         cheese_dictionary = cheese.__dict__.copy()
         cheese_dictionary['transactions'] = [tr.__dict__ for tr in cheese_dictionary['transactions']]
+        # broadcast cheese
+        broadcast_cheese_to_peers(cheese)
         response = {
             'message': 'Cheese added successfully',
             'cheese': cheese_dictionary,
@@ -211,6 +269,128 @@ def mine():
         return jsonify(response), 500
 
 
+def get_connected_pears(peer_object_):
+    my_connected_peers = peer_object_.request_connected_peers()
+    my_connected_peers = my_connected_peers.replace(CheeseProtocol.GETPEERSACK, '')
+    my_connected_peers = ast.literal_eval(my_connected_peers)
+    return my_connected_peers
+
+
+def get_peer_chain(peer_object_, connected_peer_socket):
+    peer_chain = peer_object_.request_chain(connected_peer_socket)
+    peer_chain = peer_chain.replace(CheeseProtocol.GETCHAINACK, '')
+    peer_chain = ast.literal_eval(peer_chain)
+    return peer_chain
+
+
+def get_peer_transactions(peer_object_, connected_peer_socket):
+    peer_tr = peer_object_.request_open_transactions(connected_peer_socket)
+    peer_tr = peer_tr.replace(CheeseProtocol.GETOPENTRANSACTIONSACK, '')
+    peer_tr = ast.literal_eval(peer_tr)
+    return peer_tr
+
+
+def add_cheese_from_remote_peer(cheese):
+    # confirm that the sequence number of this cheese is exactly greater than that of the receiving peer's
+    # latest sequence number by 1, otherwise, the receiving peer is missing some blocks
+    # or is already ahead of this cheese
+    if cheese['index'] == cheesechain.get_chain()[-1].sequence_number + 1:
+
+        cheese_added = cheesechain.add_cheese(cheese)
+
+        if cheese_added:
+            # broadcast to your connected peers received from tracker
+            # broadcast_cheese_to_peers(cheese)
+            pass
+    elif cheese['index'] > cheesechain.get_chain()[-1].sequence_number:
+        pass
+    else:
+        # incoming index is smaller than our last block index
+        # TODO the broadcasting block is backwards and should be informed
+        pass
+
+
+def add_transaction_from_remote_peer(tr):
+    recipient = tr['recipient']
+    sender = tr['sender']
+    amount = tr['amount']
+    signature = tr['signature']
+    transaction_added = cheesechain.add_transaction(recipient, sender, signature, amount)
+
+    if transaction_added:
+        # broadcast to your connected peers received from tracker
+        # broadcast_tr_to_peers(recipient, signature, amount)
+        pass
+
+
+def broadcast_cheese_to_peers(cheese):
+    # connect to a network tracker if not connected already
+    # TODO WRAP IN TRY BLOCK AFTER TESTS
+    global peer_object
+    global connected_peers
+    if peer_object is None:
+        peer_object = Peer(port)
+        # print(peer_object.__dict__)
+    if peer_object is not None:
+        if connected_peers is None:
+            connected_peers = get_connected_pears(peer_object)
+
+        # loop through the peers and broadcast added transaction
+        count = 0
+        for connected_peer in connected_peers:
+            # TODO WRAP IN TRY BLOCK AFTER TESTS
+            connected_peer_id = connected_peer['peer_id']
+            connected_peer_host = connected_peer['host']
+            connected_peer_port = connected_peer['port']
+            connected_peer_socket = connected_peer['socket']
+            # connect to peer
+            print("Connecting to peer with details: ")
+            print("Host: ", connected_peer_host)
+            print("port: ", connected_peer_port)
+            s = socket.create_connection((connected_peer_host, connected_peer_port))
+            print("connected to: ", s)
+
+            #  send cheese and disconnect once acknowledged
+            peer_object.share_cheese(cheese, connected_peer_socket, peer_object)
+
+
+def broadcast_tr_to_peers(recipient, sender, signature, amount):
+    # connect to a network tracker if not connected already
+    # TODO WRAP IN TRY BLOCK AFTER TESTS
+    global peer_object
+    global connected_peers
+    if peer_object is None:
+        peer_object = Peer(port)
+        # print(peer_object.__dict__)
+    if peer_object is not None:
+        if connected_peers is None:
+            connected_peers = get_connected_pears(peer_object)
+
+        # loop through the peers and broadcast added transaction
+        count = 0
+        for connected_peer in connected_peers:
+            # TODO WRAP IN TRY BLOCK AFTER TESTS
+            connected_peer_id = connected_peer['peer_id']
+            connected_peer_host = connected_peer['host']
+            connected_peer_port = connected_peer['port']
+            connected_peer_socket = connected_peer['socket']
+            # connect to peer
+            print("Connecting to peer with details: ")
+            print("Host: ", connected_peer_host)
+            print("port: ", connected_peer_port)
+            s = socket.create_connection((connected_peer_host, connected_peer_port))
+            print("connected to: ", s)
+
+            #  send transaction and disconnect once acknowledged
+            tr = {'recipient': recipient, 'sender': sender, 'signature': signature, 'amount': amount}
+            peer_object.share_added_transaction(tr, connected_peer_socket, peer_object)
+
+
+
+def disconnect_from_peer(peer_object, connected_peer_socket):
+    pass
+
+
 if __name__ == '__main__':
     from argparse import ArgumentParser
 
@@ -223,5 +403,6 @@ if __name__ == '__main__':
 
     wallet = Wallet(port)
     cheesechain = Cheesechain(wallet.public_key, port)
+    peer_object = Peer(port)
 
     app.run(host='0.0.0.0', port=port)

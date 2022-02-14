@@ -16,6 +16,9 @@ class CheeseProtocol:
     BRCHEESE = "BRCHEESE"
     BRCHEESEACK = "BRCHEESEACK"
 
+    BRTRANSACTION = 'BRTRANSACTION'
+    BRTRANSACTIONACK = 'BRTRANSACTIONACK'
+
     BRACCEPT = "BRACCEPT"
     BRREJECT = "BRREJECT"
 
@@ -30,16 +33,28 @@ class CheeseProtocol:
 
     @staticmethod
     def process_peer_request(request_body):
-        # for tracker
         if request_body.startswith(CheeseProtocol.PCONNECT):
             return CheeseProtocol.PCONNECT
+        if request_body.startswith(CheeseProtocol.PCONNECTACK):
+            return CheeseProtocol.PCONNECTACK
+        if request_body.startswith(CheeseProtocol.TCONNECTACK):
+            return CheeseProtocol.TCONNECTACK
         if request_body.startswith(CheeseProtocol.GETPEERS):
             return CheeseProtocol.GETPEERS
-        # for peers
+        if request_body.startswith(CheeseProtocol.GETPEERSACK):
+            return CheeseProtocol.GETPEERSACK
         if request_body.startswith(CheeseProtocol.GETCHAIN):
             return CheeseProtocol.GETCHAIN
+        if request_body.startswith(CheeseProtocol.GETCHAINACK):
+            return CheeseProtocol.GETCHAINACK
         if request_body.startswith(CheeseProtocol.BRCHEESE):
             return CheeseProtocol.BRCHEESE
+        if request_body.startswith(CheeseProtocol.BRCHEESEACK):
+            return CheeseProtocol.BRCHEESEACK
+        if request_body.startswith(CheeseProtocol.BRTRANSACTION):
+            return CheeseProtocol.BRTRANSACTION
+        if request_body.startswith(CheeseProtocol.BRTRANSACTIONACK):
+            return CheeseProtocol.BRTRANSACTIONACK
 
     @staticmethod
     def validate_request(request_body, connected_peers):

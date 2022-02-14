@@ -1,6 +1,8 @@
 # initialize cheesechain list
 import json
 import sys
+import ast
+import socket
 
 from utils.hash_util import hash_cheese
 from cheese import Cheese
@@ -15,6 +17,7 @@ class Cheesechain:
     REWARD_TRANSACTION_SIGNATURE = 'rewardtransactionsignature'
     MINING_REWARD = 10  # CHEESECOIN
 
+    #def __init__(self, public_key, node_id, peer_object=None, connected_peers=None):
     def __init__(self, public_key, node_id):
         # starting cheese for the cheesechain
         raclette_cheese = Cheese(0, '', [], 100, 0)
@@ -23,6 +26,8 @@ class Cheesechain:
         self.node_id = node_id
         self.load_data()
         self.public_key = public_key
+        # self.peer_object = peer_object
+        # self.connected_peers = connected_peers
 
 
     # @property
@@ -100,16 +105,20 @@ class Cheesechain:
                 nonce += 1
         return nonce
 
-    def get_balance(self):
+    def get_balance(self, sender=None):
         """
 
+        :param sender: the creator of transaction
         :param participant: a person involved in a transaction
         :return: a float cumulative cheesecoin balance of the participant
         """
-        if self.public_key is None:
-            # no public key available
-            return None
-        participant = self.public_key
+        if sender is None:
+            if self.public_key is None:
+                # no public key available
+                return None
+            participant = self.public_key
+        else:
+            participant = sender
 
         tx_sender = [[tx.amount for tx in cheese.transactions if tx.sender == participant] for cheese in
                      self.__my_cheesechain]
@@ -144,6 +153,7 @@ class Cheesechain:
     def add_transaction(self, recipient, sender, signature, amount=1.0):
         """
 
+        :param node_port: port on which web server is listening
         :param recipient: receiver of cheesecoin
         :param sender: sender of cheesechain
         :param signature: signed string of sender showing authenticity
@@ -162,9 +172,7 @@ class Cheesechain:
             self.__open_transactions.append(transaction)
             self.save_data()
 
-            print('After save')
-            print(self.__my_cheesechain)
-            print(self.__open_transactions)
+            # self.broadcast_added_transaction(recipient, sender, signature, amount)
             return True
         return False
 
@@ -201,10 +209,25 @@ class Cheesechain:
         copied_transactions.append(reward_transaction)
 
         cheese = Cheese(len(self.__my_cheesechain), parent_smell, copied_transactions, nonce)
-
-
         self.get_chain().append(cheese)
         # reset open transactions and save
         self.__open_transactions = []
         self.save_data()
         return cheese
+
+    def add_cheese(self, cheese):
+        # validate and add
+        transactions = [Transaction(tr['sender'], tr['recipient'], tr['signature'], tr['amount']) for tr in cheese['transactions']]
+
+        # confirm proof of work
+        is_valid = Verification.valid_proof(transactions, cheese['previous_smell'], cheese['nonce'])
+
+        # confirm if the hash of our last cheese matches the last cheese stored in the incoming cheese
+        hashes_match = hash_cheese(self.get_chain()[-1]) == cheese['previous_smell']
+
+        if not is_valid or not hashes_match:
+            return False
+        converted_cheese = Cheese(cheese['sequence_number'], cheese['previous_smell'], transactions, cheese['nonce'], cheese['timestamp'])
+        self.__my_cheesechain.append(converted_cheese)
+        self.save_data()
+        return True

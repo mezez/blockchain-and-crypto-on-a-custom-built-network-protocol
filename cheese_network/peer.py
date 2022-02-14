@@ -1,4 +1,6 @@
+import ast
 import decimal
+import json
 import queue
 import random
 import socket
@@ -17,10 +19,11 @@ class Peer:
 
     def __init__(self, node_id, host=None, port=None):
         self.peer_id = None
-        self.connected_peers = []
+        self.connected_peers = None
         self.tracker_socket = None
         self.host = host
         self.port = port
+        self.node_id = node_id
         self.connected_to = []
         self.wallet = Wallet(node_id)
 
@@ -97,7 +100,7 @@ class Peer:
             peer_info = {
                 'peer_id': peer_id,
                 'host': peer_host,
-                'post': peer_port
+                'port': peer_port
             }
             self.connected_to.append(peer_info)
 
@@ -197,7 +200,9 @@ class Peer:
                     if request_type == CheeseProtocol.GETCHAIN:
                         # load node, retrieve wallet and get cheesechain
                         request_body = line.split(':')
-                        node_id = request_body[2]
+                        node_id = self.node_id
+
+                        # maybe this is not even needed, walled is initialized when peer starts
                         wallet = Wallet(node_id)
 
                         wallet.load_keys()
@@ -211,7 +216,9 @@ class Peer:
                     if request_type == CheeseProtocol.GETOPENTRANSACTIONS:
                         # load node, retrieve wallet and get open transactions
                         request_body = line.split(':')
-                        node_id = request_body[2]
+                        node_id = self.node_id
+
+                        # maybe this is not even needed, walled is initialized when peer starts
                         wallet = Wallet(node_id)
                         wallet.load_keys()
                         cheesechain = Cheesechain(wallet.public_key, node_id)
@@ -222,7 +229,66 @@ class Peer:
                         socket.send(formatted_tr.encode())
 
                     if request_type == CheeseProtocol.BRCHEESE:
-                        pass
+                        # TODO add_cheese_from_remote_peer(cheese)
+                        # compare with your local chain and update if applicable
+                        # maybe reject if invalid
+                        request_body = line.split(':')
+                        cheese = request_body[0].replace(CheeseProtocol.BRCHEESE, '')
+                        cheese = ast.literal_eval(cheese)
+
+                        """EITHER: if this peer will not also re broadcast to its peers, avoiding a chain reaction"""
+                        node_id = self.node_id
+
+                        # maybe this is not even needed, walled is initialized when peer starts
+                        wallet = Wallet(node_id)
+                        wallet.load_keys()
+                        cheesechain = Cheesechain(wallet.public_key, node_id)
+                        added = cheesechain.add_cheese(cheese)
+
+                        """OR: if this peer will also re broadcast to its peers, leading to a chain reaction"""
+                        # hopefully the node module will already be set up by the time this event occurs lol
+                        # alternative: sending a pointer to add_cheese_from_remote_peer from source tr add point
+                        # from node import add_cheese_from_remote_peer
+                        # add_cheese_from_remote_peer(cheese)
+
+                        res = CheeseProtocol.BRTRANSACTIONACK
+                        socket.send(res.encode())
+                    if request_type == CheeseProtocol.BRCHEESEACK:
+                        # TODO SEND DISCONNECTION MESSAGE
+                        socket.close()
+
+                    if request_type == CheeseProtocol.BRTRANSACTION:
+                        # TODO
+                        # verify and compare with your local transactions and update if applicable
+                        # maybe reject if invalid
+                        request_body = line.split(':')
+                        tr = request_body[0].replace(CheeseProtocol.BRTRANSACTION, '')
+                        tr = ast.literal_eval(tr)
+
+                        # peer_object = request_body[1]
+                        # connected_peers = request_body[2]
+
+                        """EITHER: if this peer will not also re broadcast to its peers, avoiding a chain reaction"""
+                        node_id = self.node_id
+
+                        # maybe this is not even needed, walled is initialized when peer starts
+                        wallet = Wallet(node_id)
+                        wallet.load_keys()
+                        cheesechain = Cheesechain(wallet.public_key, node_id)
+                        added = cheesechain.add_transaction(tr['recipient'], tr['sender'], tr['signature'], tr['amount'])
+
+                        """OR: if this peer will also re broadcast to its peers, leading to a chain reaction"""
+                        # hopefully the node module will already be set up by the time this event occurs lol
+                        # alternative: sending a pointer to add_transaction_from_remote_peer from source tr add point
+                        # from node import add_transaction_from_remote_peer
+                        # add_transaction_from_remote_peer(tr)
+
+                        res = CheeseProtocol.BRTRANSACTIONACK
+                        socket.send(res.encode())
+
+                    if request_type == CheeseProtocol.BRTRANSACTIONACK:
+                        # TODO SEND DISCONNECTION MESSAGE
+                        socket.close()
 
 
         t = Thread(target=handle)
@@ -230,6 +296,8 @@ class Peer:
 
     def request_connected_peers(self):
         print(self.tracker_socket)
+        if self.connected_peers is not None:
+            return self.connected_peers
         if self.peer_id is not None and self.tracker_socket is not None:
             request = CheeseProtocol.GETPEERS + ':' + self.peer_id
             Peer.send_message(request, self.tracker_socket)
@@ -249,14 +317,15 @@ class Peer:
                     if line.startswith(CheeseProtocol.GETPEERSACK):
                         connected_peers = line
                         listening_for_response = False
+                        self.connected_peers = connected_peers
             return connected_peers
         else:
             return False
 
-    def request_chain(self, peer_socket, node_port):
+    def request_chain(self, peer_socket):
         print(self.tracker_socket)
-        if self.peer_id is not None and self.tracker_socket is not None:
-            request = CheeseProtocol.GETCHAIN + ':' + self.peer_id + ':' + node_port
+        if self.peer_id is not None:
+            request = CheeseProtocol.GETCHAIN + ':' + self.peer_id
             Peer.send_message(request, peer_socket)
 
             listening_for_response = True
@@ -278,10 +347,10 @@ class Peer:
         else:
             return False
 
-    def request_open_transactions(self, peer_socket, node_port):
+    def request_open_transactions(self, peer_socket):
         print(self.tracker_socket)
-        if self.peer_id is not None and self.tracker_socket is not None:
-            request = CheeseProtocol.GETOPENTRANSACTIONS + ':' + self.peer_id + ':' + node_port
+        if self.peer_id is not None:
+            request = CheeseProtocol.GETOPENTRANSACTIONS + ':' + self.peer_id
             Peer.send_message(request, peer_socket)
 
             listening_for_response = True
@@ -303,10 +372,53 @@ class Peer:
         else:
             return False
 
-    def share_cheesechain(self):
+    def share_cheese(self, cheese, peer_socket, peer_object):
+        request = CheeseProtocol.BRCHEESE + json.dumps(cheese) + ':' + self.peer_id
+        Peer.send_message(request, peer_socket)
+        # spin up thread to wait for response and close connection afterwards
+        peer_object.handle_peers(peer_socket)
+        # listening_for_response = True
+        # while listening_for_response:
+        #     line = MyHelpers.custom_read(self.tracker_socket)
+        #     if line is None:
+        #         # end the loop when the connection is closed (readLine returns None or throws an exception)
+        #         print("No response received")
+        #         break
+        #         # pass
+        #     else:
+        #         print("RECEIVED LINE (PEER TR):")
+        #         print("received", line)
+        #         if line.startswith(CheeseProtocol.BRTRANSACTIONACK):
+        #             listening_for_response = False
+        return True
+
+    def share_new_cheesechain(self):
         pass
 
-    def share_new_cheeschain(self):
+    def share_added_transaction(self, transaction, peer_socket, peer_object):
+        request = CheeseProtocol.BRTRANSACTION + json.dumps(transaction) + ':' + self.peer_id
+        Peer.send_message(request, peer_socket)
+        # spin up thread to wait for response and close connection afterwards
+        peer_object.handle_peers(peer_socket)
+        # listening_for_response = True
+        # while listening_for_response:
+        #     line = MyHelpers.custom_read(self.tracker_socket)
+        #     if line is None:
+        #         # end the loop when the connection is closed (readLine returns None or throws an exception)
+        #         print("No response received")
+        #         break
+        #         # pass
+        #     else:
+        #         print("RECEIVED LINE (PEER TR):")
+        #         print("received", line)
+        #         if line.startswith(CheeseProtocol.BRTRANSACTIONACK):
+        #             listening_for_response = False
+        return True
+
+    def disconnect_from_peer(self):
+        pass
+
+    def disconnect_from_tracker(self):
         pass
 
     @staticmethod
