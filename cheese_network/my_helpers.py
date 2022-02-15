@@ -1,4 +1,6 @@
 import json
+import struct
+import sys
 import uuid
 import random
 
@@ -18,8 +20,32 @@ class MyHelpers:
 
     @staticmethod
     def custom_read(f):
-        data = f.recv(1024).decode()
-        return data
+        data = f.recv(100000).decode()
+        return  data
+        chunks = []
+        # bytes_recd = 0
+        receiving = True
+        while receiving:
+            chunk = f.recv(2048)
+            if not chunk:
+                receiving = False
+            chunks.append(chunk)
+            # bytes_recd = bytes_recd + len(chunk)
+        data = b''.join(chunks)
+        return data.decode()
+
+    @staticmethod
+    def custom_read_old(f):
+        #data = f.recv(1024).decode()
+        fragments = []
+        while True:
+            chunk = f.recv(10000)
+            if not chunk:
+                break
+            fragments.append(chunk)
+        data = b''.join(fragments)
+        print(data)
+        return data.decode()
 
     @staticmethod
     def read_line(f):

@@ -63,7 +63,7 @@ def handle_peer(socket, my_queue):
         # loop over the received data, ignoring (or just printing) this data for now (e.g., use netutils to read lines)
         # be sure to end the loop when the connection is closed (readLine returns None or throws an exception)
         while True:
-            line = MyHelpers.read_line(socket)
+            line = MyHelpers.custom_read(socket)
             if line is None:
                 # remove client from connected peers
                 break
@@ -100,7 +100,8 @@ def handle_peer(socket, my_queue):
                         connected_peers_sublist = CheeseProtocol.GETPEERSACK + connected_peers_sublist
                         socket.send(connected_peers_sublist.encode())
                     else:
-                        response_message = CheeseProtocol.INVALIDPEERID + '\r\n'
+                        # response_message = CheeseProtocol.INVALIDPEERID + '\r\n'
+                        response_message = CheeseProtocol.INVALIDPEERID
                         socket.send(response_message.encode())
 
 

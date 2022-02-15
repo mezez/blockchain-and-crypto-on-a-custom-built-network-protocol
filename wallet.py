@@ -25,7 +25,7 @@ class Wallet:
         # save keys to file
         if self.private_key is not None and self.private_key is not None:
             try:
-                with open('wallet-{}.txt'.format(self.node_id), mode='w') as wallet_file:
+                with open('chain_database/wallets/wallet-{}.txt'.format(self.node_id), mode='w') as wallet_file:
                     wallet_file.write(self.public_key)
                     wallet_file.write('\n')
                     wallet_file.write(self.private_key)
@@ -36,7 +36,7 @@ class Wallet:
 
     def load_keys(self):
         try:
-            with open('wallet-{}.txt'.format(self.node_id), mode='r') as wallet_file:
+            with open('chain_database/wallets/wallet-{}.txt'.format(self.node_id), mode='r') as wallet_file:
                 keys = wallet_file.readlines()
                 # public_key = keys[:-1] # skip the \n character ??
                 public_key = keys[0]

@@ -108,33 +108,38 @@ def get_chain():
             count = 0
             for connected_peer in connected_peers:
                 # TODO WRAP IN TRY BLOCK AFTER TESTS
-                connected_peer_id = connected_peer['peer_id']
-                if connected_peer_id != peer_object.peer_id:
-                    # don't connect to yourself
-                    connected_peer_host = connected_peer['host']
-                    connected_peer_port = connected_peer['port']
-                    # connected_peer_socket = connected_peer['socket']
-                    # connect to peer
-                    print("Connecting to peer with details: ")
-                    print("Host: ", connected_peer_host)
-                    print("port: ", connected_peer_port)
-                    s = socket.create_connection((connected_peer_host, connected_peer_port))
-                    print("connected to: ", s)
+                try:
+                    connected_peer_id = connected_peer['peer_id']
+                    if connected_peer_id != peer_object.peer_id:
+                        # don't connect to yourself
+                        connected_peer_host = connected_peer['host']
+                        connected_peer_port = connected_peer['port']
+                        # connected_peer_socket = connected_peer['socket']
+                        # connect to peer
+                        print("Connecting to peer with details: ")
+                        print("Host: ", connected_peer_host)
+                        print("port: ", connected_peer_port)
+                        s = socket.create_connection((connected_peer_host, connected_peer_port))
+                        print("connected to: ", s)
 
-                    # request chain
-                    # port here is the port on which the node app is running
-                    # necessary for differentiating wallets and chains of the different nodes
-                    peer_chain = get_peer_chain(peer_object, s)
-                    peer_chains.append(peer_chain)
+                        # request chain
+                        # port here is the port on which the node app is running
+                        # necessary for differentiating wallets and chains of the different nodes
+                        peer_chain = get_peer_chain(peer_object, s)
+                        peer_chains.append(peer_chain)
 
-                    # request open transactions
-                    # port here is the port on which the node app is running
-                    peer_tr = get_peer_transactions(peer_object, s)
-                    peer_open_transactions.append(peer_tr)
-                    # TODO SEND DISCONNECTION MESSAGE
-                    s.close()  # close connection after retrieving chain
+                        # request open transactions
+                        # port here is the port on which the node app is running
+                        peer_tr = get_peer_transactions(peer_object, s)
+                        peer_open_transactions.append(peer_tr)
+                        # TODO SEND DISCONNECTION MESSAGE
+                        s.close()  # close connection after retrieving chain
 
-                    # disconnect from peer
+                        # disconnect from peer
+
+                except:
+                    # could not connect to peer, move to next
+                    pass
 
                 count += 1
 
@@ -295,8 +300,9 @@ def mine():
     if cheese is not None:
         cheese_dictionary = cheese.__dict__.copy()
         cheese_dictionary['transactions'] = [tr.__dict__ for tr in cheese_dictionary['transactions']]
+
         # broadcast cheese
-        broadcast_cheese_to_peers(cheese)
+        broadcast_cheese_to_peers(cheese_dictionary)
         response = {
             'message': 'Cheese added successfully',
             'cheese': cheese_dictionary,
@@ -381,20 +387,27 @@ def broadcast_cheese_to_peers(cheese):
         # loop through the peers and broadcast added transaction
         count = 0
         for connected_peer in connected_peers:
-            # TODO WRAP IN TRY BLOCK AFTER TESTS
-            connected_peer_id = connected_peer['peer_id']
-            connected_peer_host = connected_peer['host']
-            connected_peer_port = connected_peer['port']
-            # connected_peer_socket = connected_peer['socket']
-            # connect to peer
-            print("Connecting to peer with details: ")
-            print("Host: ", connected_peer_host)
-            print("port: ", connected_peer_port)
-            s = socket.create_connection((connected_peer_host, connected_peer_port))
-            print("connected to: ", s)
+            #  WRAP IN TRY BLOCK AFTER TESTS
+            try:
+                connected_peer_id = connected_peer['peer_id']
+                # prevent broadcast to self
+                if connected_peer_id != peer_object.peer_id:
+                    connected_peer_host = connected_peer['host']
+                    connected_peer_port = connected_peer['port']
+                    # connected_peer_socket = connected_peer['socket']
+                    # connect to peer
+                    print("Connecting to peer with details: ")
+                    print("Host: ", connected_peer_host)
+                    print("port: ", connected_peer_port)
+                    s = socket.create_connection((connected_peer_host, connected_peer_port))
+                    print("connected to: ", s)
 
-            #  send cheese and disconnect once acknowledged
-            peer_object.share_cheese(cheese, s, peer_object)
+                    #  send cheese and disconnect once acknowledged
+                    peer_object.share_cheese(cheese, s, peer_object)
+            except:
+                # connection failed, move to next peer
+                pass
+            count += 1
 
 
 def broadcast_tr_to_peers(recipient, sender, signature, amount):
@@ -414,21 +427,27 @@ def broadcast_tr_to_peers(recipient, sender, signature, amount):
         count = 0
         for connected_peer in connected_peers:
             # TODO WRAP IN TRY BLOCK AFTER TESTS
-            connected_peer_id = connected_peer['peer_id']
-            connected_peer_host = connected_peer['host']
-            connected_peer_port = connected_peer['port']
-            # connected_peer_socket = connected_peer['socket']
-            # connect to peer
-            print("Connecting to peer with details: ")
-            print("Host: ", connected_peer_host)
-            print("port: ", connected_peer_port)
-            s = socket.create_connection((connected_peer_host, connected_peer_port))
-            print("connected to: ", s)
+            try:
+                connected_peer_id = connected_peer['peer_id']
+                # TODO prevent broadcast to self
+                if connected_peer_id != peer_object.peer_id:
+                    connected_peer_host = connected_peer['host']
+                    connected_peer_port = connected_peer['port']
+                    # connected_peer_socket = connected_peer['socket']
+                    # connect to peer
+                    print("Connecting to peer with details: ")
+                    print("Host: ", connected_peer_host)
+                    print("port: ", connected_peer_port)
+                    s = socket.create_connection((connected_peer_host, connected_peer_port))
+                    print("connected to: ", s)
 
-            #  send transaction and disconnect once acknowledged
-            tr = {'recipient': recipient, 'sender': sender, 'signature': signature, 'amount': amount}
-            peer_object.share_added_transaction(tr, s, peer_object)
-
+                    #  send transaction and disconnect once acknowledged
+                    tr = {'recipient': recipient, 'sender': sender, 'signature': signature, 'amount': amount}
+                    peer_object.share_added_transaction(tr, s, peer_object)
+            except:
+                # connection failed, move to next peer
+                pass
+            count += 1
 
 
 def disconnect_from_peer(peer_object, connected_peer_socket):

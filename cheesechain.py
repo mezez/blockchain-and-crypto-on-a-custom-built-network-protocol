@@ -12,7 +12,7 @@ from utils.verification import Verification
 
 
 class Cheesechain:
-    CHEESECHAIN_FILE = 'cheesechain.txt'
+    CHEESECHAIN_FILE = 'chain_database/cheese_chains/cheesechain.txt'
     CHEESECHAIN_REWARD_SYSTEM = 'CHEESECHAIN REWARD SYSTEM'
     REWARD_TRANSACTION_SIGNATURE = 'rewardtransactionsignature'
     MINING_REWARD = 10  # CHEESECOIN
@@ -49,7 +49,7 @@ class Cheesechain:
             # with open(Cheesechain.CHEESECHAIN_FILE, mode='r') as file:
 
             # each file will correspond to the node that created it
-            with open('cheesechain-{}.txt'.format(self.node_id), mode='r') as file:
+            with open('chain_database/cheese_chains/cheesechain-{}.txt'.format(self.node_id), mode='r') as file:
                 file_contents = file.readlines()
 
                 cheesechain = json.loads(file_contents[0])  # first line is the cheesechain
@@ -80,7 +80,7 @@ class Cheesechain:
     def save_data(self):
         try:
             # with open(Cheesechain.CHEESECHAIN_FILE, mode='w') as file:
-            with open('cheesechain-{}.txt'.format(self.node_id), mode='w') as file:
+            with open('chain_database/cheese_chains/cheesechain-{}.txt'.format(self.node_id), mode='w') as file:
                 # convert the cheesechain object into a dictionary that can be parsed to json
                 # this also involves a nested conversion of the transactions list of objects into a list of dictionaries
                 save_able_chain = [cheese.__dict__ for cheese in [
@@ -97,7 +97,7 @@ class Cheesechain:
     def overwrite_data(self, save_able_chain, save_able_tr):
         try:
             # with open(Cheesechain.CHEESECHAIN_FILE, mode='w') as file:
-            with open('cheesechain-{}.txt'.format(self.node_id), mode='w') as file:
+            with open('chain_database/cheese_chains/cheesechain-{}.txt'.format(self.node_id), mode='w') as file:
 
                 file.write(json.dumps(save_able_chain))
                 file.write('\n')

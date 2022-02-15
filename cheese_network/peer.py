@@ -4,6 +4,7 @@ import json
 import queue
 import random
 import socket
+import struct
 import sys
 import time
 
@@ -184,7 +185,7 @@ class Peer:
             # loop over the received data, ignoring (or just printing) this data for now (e.g., use netutils to read lines)
             # be sure to end the loop when the connection is closed (readLine returns None or throws an exception)
             while True:
-                line = MyHelpers.read_line(socket)
+                line = MyHelpers.custom_read(socket)
                 if line is None:
                     # remove client from connected peers
                     break
@@ -213,7 +214,7 @@ class Peer:
 
                         # convert to string and send to peer
                         formatted_chain = CheeseProtocol.GETCHAINACK + chain
-                        socket.send(formatted_chain.encode())
+                        socket.sendall(formatted_chain.encode())
 
                     if request_type == CheeseProtocol.GETOPENTRANSACTIONS:
                         # load node, retrieve wallet and get open transactions
@@ -230,14 +231,16 @@ class Peer:
 
                         # convert to string and send to peer
                         formatted_tr = CheeseProtocol.GETOPENTRANSACTIONSACK + transactions
-                        socket.send(formatted_tr.encode())
+                        socket.sendall(formatted_tr.encode())
 
                     if request_type == CheeseProtocol.BRCHEESE:
                         # TODO add_cheese_from_remote_peer(cheese)
                         # compare with your local chain and update if applicable
                         # maybe reject if invalid
-                        request_body = line.split(':')
+                        request_body = line.split(';')
                         cheese = request_body[0].replace(CheeseProtocol.BRCHEESE, '')
+                        print('CHEESE TO BROADCAST')
+                        print(cheese)
                         cheese = ast.literal_eval(cheese)
 
                         """EITHER: if this peer will not also re broadcast to its peers, avoiding a chain reaction"""
@@ -248,6 +251,7 @@ class Peer:
                         wallet.load_keys()
                         cheesechain = Cheesechain(wallet.public_key, node_id)
                         added = cheesechain.add_cheese(cheese)
+                        print('ADD ATTEMPT COMPLETE')
 
                         """OR: if this peer will also re broadcast to its peers, leading to a chain reaction"""
                         # hopefully the node module will already be set up by the time this event occurs lol
@@ -256,7 +260,7 @@ class Peer:
                         # add_cheese_from_remote_peer(cheese)
 
                         res = CheeseProtocol.BRTRANSACTIONACK
-                        socket.send(res.encode())
+                        socket.sendall(res.encode())
                     if request_type == CheeseProtocol.BRCHEESEACK:
                         # TODO SEND DISCONNECTION MESSAGE
                         socket.close()
@@ -288,7 +292,7 @@ class Peer:
                         # add_transaction_from_remote_peer(tr)
 
                         res = CheeseProtocol.BRTRANSACTIONACK
-                        socket.send(res.encode())
+                        socket.sendall(res.encode())
 
                     if request_type == CheeseProtocol.BRTRANSACTIONACK:
                         # TODO SEND DISCONNECTION MESSAGE
@@ -375,7 +379,7 @@ class Peer:
             return False
 
     def share_cheese(self, cheese, peer_socket, peer_object):
-        request = CheeseProtocol.BRCHEESE + json.dumps(cheese) + ':' + self.peer_id
+        request = CheeseProtocol.BRCHEESE + json.dumps(cheese) + ';' + self.peer_id
         Peer.send_message(request, peer_socket)
         # spin up thread to wait for response and close connection afterwards
         peer_object.handle_peers(peer_socket)
@@ -431,9 +435,25 @@ class Peer:
 
     @staticmethod
     def send_message(message, my_socket):
-        message = message + '\r\n'
+        # message = message + '\r\n'
         message = message.encode()
-        my_socket.send(message)
+        # my_socket.send(message)
+        my_socket.sendall(message)
+
+    @staticmethod
+    def send_messageOlder(message, my_socket):
+        # Prefix each message with a 4-byte length (network byte order)
+        message = struct.pack('>I', len(message)) + message
+        my_socket.sendall(message)
+
+    @staticmethod
+    def send_message_old(message, my_socket):
+        total_sent = 0
+        while total_sent < len(message):
+            sent = my_socket.send(message[total_sent:])
+            if sent == 0:
+                raise RuntimeError("socket connection broken")
+            total_sent = total_sent + sent
 
 
 if __name__ == "__main__":
