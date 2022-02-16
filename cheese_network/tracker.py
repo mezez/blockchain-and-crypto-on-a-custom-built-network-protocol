@@ -2,8 +2,8 @@ import queue
 import uuid
 from threading import Thread
 import socket
-from cheese_network.my_helpers import MyHelpers
-from cheese_network.cheese_protocol import CheeseProtocol
+from my_helpers import MyHelpers
+from cheese_protocol import CheeseProtocol
 import random
 
 # magic word
