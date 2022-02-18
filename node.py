@@ -113,11 +113,12 @@ def get_chain():
                 # TODO WRAP IN TRY BLOCK AFTER TESTS
                 try:
                     connected_peer_id = connected_peer['peer_id']
+                    # don't connect to yourself
                     if connected_peer_id != peer_object.peer_id:
-                        # don't connect to yourself
                         connected_peer_host = connected_peer['host']
                         connected_peer_port = connected_peer['port']
                         # connected_peer_socket = connected_peer['socket']
+
                         # connect to peer
                         print("Connecting to peer with details: ")
                         print("Host: ", connected_peer_host)
@@ -133,8 +134,8 @@ def get_chain():
 
                         # request open transactions
                         # port here is the port on which the node app is running
-                        peer_tr = get_peer_transactions(peer_object, s)
-                        peer_open_transactions.append(peer_tr)
+                        # peer_tr = get_peer_transactions(peer_object, s)
+                        # peer_open_transactions.append(peer_tr)
                         # TODO SEND DISCONNECTION MESSAGE
                         s.close()  # close connection after retrieving chain
 
@@ -176,21 +177,21 @@ def get_chain():
             # just_connecting = False
 
         # update transactions
-        for peer_transactions in peer_open_transactions:
-            for incoming_transaction in peer_transactions:
-                global exists
-                exists = False
-                cheesechain.load_data()
-                my_open_tr = cheesechain.get_open_transactions()
-                for open_transaction in my_open_tr:
-                    if open_transaction.sender == incoming_transaction['sender'] and open_transaction.recipient == \
-                            incoming_transaction['recipient'] and open_transaction.amount == incoming_transaction[
-                        'amount'] \
-                            and open_transaction.signature == incoming_transaction['signature']:
-                        exists = True
-                if not exists:
-                    cheesechain.add_transaction(incoming_transaction['recipient'], incoming_transaction['sender'],
-                                                incoming_transaction['signature'], incoming_transaction['amount'])
+        # for peer_transactions in peer_open_transactions:
+        #     for incoming_transaction in peer_transactions:
+        #         global exists
+        #         exists = False
+        #         cheesechain.load_data()
+        #         my_open_tr = cheesechain.get_open_transactions()
+        #         for open_transaction in my_open_tr:
+        #             if open_transaction.sender == incoming_transaction['sender'] and open_transaction.recipient == \
+        #                     incoming_transaction['recipient'] and open_transaction.amount == incoming_transaction[
+        #                 'amount'] \
+        #                     and open_transaction.signature == incoming_transaction['signature']:
+        #                 exists = True
+        #         if not exists:
+        #             cheesechain.add_transaction(incoming_transaction['recipient'], incoming_transaction['sender'],
+        #                                         incoming_transaction['signature'], incoming_transaction['amount'])
     cheesechain.load_data()
     chain_snapshot = cheesechain.get_chain()
     # convert the cheesechain object to dictionary, to be able to parse to json
@@ -274,11 +275,12 @@ def get_open_transactions():
                 # TODO WRAP IN TRY BLOCK AFTER TESTS
                 try:
                     connected_peer_id = connected_peer['peer_id']
+                    # don't connect to yourself
                     if connected_peer_id != peer_object.peer_id:
-                        # don't connect to yourself
                         connected_peer_host = connected_peer['host']
                         connected_peer_port = connected_peer['port']
                         # connected_peer_socket = connected_peer['socket']
+
                         # connect to peer
                         print("Connecting to peer with details: ")
                         print("Host: ", connected_peer_host)
@@ -346,6 +348,8 @@ def get_open_transactions():
                         incoming_transaction['recipient'] and open_transaction.amount == incoming_transaction['amount']\
                         and open_transaction.signature == incoming_transaction['signature']:
                     exists = True
+                if exists:
+                    break
             if not exists:
                 cheesechain.add_transaction(incoming_transaction['recipient'], incoming_transaction['sender'],
                                             incoming_transaction['signature'], incoming_transaction['amount'])
