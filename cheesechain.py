@@ -232,15 +232,15 @@ class Cheesechain:
         transactions = [Transaction(tr['sender'], tr['recipient'], tr['signature'], tr['amount']) for tr in cheese['transactions']]
 
         # confirm proof of work
-        is_valid = Verification.valid_proof(transactions[:-1], cheese['previous_smell'], cheese['nonce'])
+        is_valid = Verification.valid_proof(transactions[:-1], cheese['parent_smell'], cheese['nonce'])
         # transactions[:-1] : remove the reward transaction from the validation process
 
         # confirm if the hash of our last cheese matches the last cheese stored in the incoming cheese
-        hashes_match = hash_cheese(self.get_chain()[-1]) == cheese['previous_smell']
+        hashes_match = hash_cheese(self.get_chain()[-1]) == cheese['parent_smell']
 
         if not is_valid or not hashes_match:
             return False
-        converted_cheese = Cheese(cheese['sequence_number'], cheese['previous_smell'], transactions, cheese['nonce'], cheese['timestamp'])
+        converted_cheese = Cheese(cheese['sequence_number'], cheese['parent_smell'], transactions, cheese['nonce'], cheese['timestamp'])
         self.__my_cheesechain.append(converted_cheese)
         # update my open transactions
         stored_transactions = self.__open_transactions[:]

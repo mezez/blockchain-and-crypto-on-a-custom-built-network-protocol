@@ -21,7 +21,7 @@ class MyHelpers:
     @staticmethod
     def custom_read(f):
         data = f.recv(100000).decode()
-        return  data
+        return data
         chunks = []
         # bytes_recd = 0
         receiving = True

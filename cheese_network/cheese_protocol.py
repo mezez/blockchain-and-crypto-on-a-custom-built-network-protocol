@@ -5,13 +5,13 @@ class CheeseProtocol:
     INVALIDPEERID = "INVALIDPEERID"
     PCONNECT = "PCONNECT"
     PCONNECTACK = "PCONNECTACK"
-    TCONNECTACK = "TCONNECTACK"
+    TCONNECTRESP = "TCONNECTRESP"
     GETCHAIN = "GETCHAIN"
-    GETCHAINACK = "GETCHAINACK"
+    GETCHAINRESP = "GETCHAINRESP"
     GETOPENTRANSACTIONS = "GETOPENTRANSACTIONS"
-    GETOPENTRANSACTIONSACK = "GETOPENTRANSACTIONSACK"
+    GETOPENTRANSACTIONSRESP = "GETOPENTRANSACTIONSRESP"
     GETPEERS = "GETPEERS"
-    GETPEERSACK = "GETPEERSACK"
+    GETPEERSRESP = "GETPEERSRESP"
 
     BRCHEESE = "BRCHEESE"
     BRCHEESEACK = "BRCHEESEACK"
@@ -37,20 +37,20 @@ class CheeseProtocol:
             return CheeseProtocol.PCONNECT
         if request_body.startswith(CheeseProtocol.PCONNECTACK):
             return CheeseProtocol.PCONNECTACK
-        if request_body.startswith(CheeseProtocol.TCONNECTACK):
-            return CheeseProtocol.TCONNECTACK
+        if request_body.startswith(CheeseProtocol.TCONNECTRESP):
+            return CheeseProtocol.TCONNECTRESP
         if request_body.startswith(CheeseProtocol.GETPEERS):
             return CheeseProtocol.GETPEERS
-        if request_body.startswith(CheeseProtocol.GETPEERSACK):
-            return CheeseProtocol.GETPEERSACK
+        if request_body.startswith(CheeseProtocol.GETPEERSRESP):
+            return CheeseProtocol.GETPEERSRESP
         if request_body.startswith(CheeseProtocol.GETCHAIN):
             return CheeseProtocol.GETCHAIN
-        if request_body.startswith(CheeseProtocol.GETCHAINACK):
-            return CheeseProtocol.GETCHAINACK
+        if request_body.startswith(CheeseProtocol.GETCHAINRESP):
+            return CheeseProtocol.GETCHAINRESP
         if request_body.startswith(CheeseProtocol.GETOPENTRANSACTIONS):
             return CheeseProtocol.GETOPENTRANSACTIONS
-        if request_body.startswith(CheeseProtocol.GETOPENTRANSACTIONSACK):
-            return CheeseProtocol.GETOPENTRANSACTIONSACK
+        if request_body.startswith(CheeseProtocol.GETOPENTRANSACTIONSRESP):
+            return CheeseProtocol.GETOPENTRANSACTIONSRESP
         if request_body.startswith(CheeseProtocol.BRCHEESE):
             return CheeseProtocol.BRCHEESE
         if request_body.startswith(CheeseProtocol.BRCHEESEACK):

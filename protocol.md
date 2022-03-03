@@ -8,6 +8,7 @@ NOTE: ALL SAMPLE CODES ARE WRITTEN IN PYTHON
 * A TRACKER runs constantly on localhost (at the time of writing)
 * PEERS can connect to the tracker on port 9999  
 
+* All data shared among nodes are binary encoded before sending and decrypted upon reception
 
 #-CONNECT TO TRACKER
 This demonstrates sample code in python for connecting to the tracker by a peer
@@ -36,7 +37,7 @@ This demonstrates protocol/sample code in python for requesting to join a cheese
 
 * Response: 
 * type = byte string
-* response string = TCONNECTACK:PEER_ID
+* response string = TCONNECTRESP:PEER_ID
 * PEER_ID is created by tracker for identifying the peer subsequently
 
 #-REQUEST LIST OF PEERS IN THE CHAIN
@@ -49,7 +50,7 @@ This demonstrates protocol/sample code in python for requesting list of peers in
 * 
 * Response: 
 * type = byte string
-* response string = GETPEERSACK[{"peer_id":"PIDbbbbb", "host":"0.9.X.X","port":"0.9.X.X", "socket":" SOCKET OBJECT"}, {"peer_id":"PIDbbbbb", "host":"0.9.X.X","port":"0.9.X.X", "socket":" SOCKET OBJECT"}, {"peer_id":"PIDbbbbb", "host":"0.9.X.X","port":"0.9.X.X", "socket":" SOCKET OBJECT"}, ...]
+* response string = GETPEERSRESP[{"peer_id":"PIDbbbbb", "host":"0.9.X.X","port":"0.9.X.X", "socket":" SOCKET OBJECT"}, {"peer_id":"PIDbbbbb", "host":"0.9.X.X","port":"0.9.X.X", "socket":" SOCKET OBJECT"}, {"peer_id":"PIDbbbbb", "host":"0.9.X.X","port":"0.9.X.X", "socket":" SOCKET OBJECT"}, ...]
 
 #-CONNECT TO PEER
 This demonstrates sample code in python for connecting to a peer by another peer.
@@ -72,8 +73,8 @@ This demonstrates protocol/sample code in python for broadcasting cheesechain wi
 * 
 * Response: 
 * type = byte string
-* response string = HCKACK
-* BRCHEESE is the confirmation of reception of broadcast by peer(s)
+* response string = BRCHEESEACK
+* BRCHEESEACK is the confirmation of reception of broadcast by peer(s)
 * s.send(response.encode()) where s is the socket created during connection  
 
 
@@ -101,7 +102,7 @@ This demonstrates protocol/sample code in python for requesting cheeses by a pee
 * 
 * Response: 
 * type = byte string
-* response string = GETCHAINACK[{"sequence_number": 0, "parent_smell": "", "transactions": [], "nonce": 100, "timestamp": 0}, ...]  
+* response string = GETCHAINRESP[{"sequence_number": 0, "parent_smell": "", "transactions": [], "nonce": 100, "timestamp": 0}, ...]  
 
 
 #-GET OPEN TRANSACTIONS FROM PEER(S)
@@ -114,7 +115,7 @@ This demonstrates protocol/sample code in python for requesting open transaction
 * 
 * Response: 
 * type = byte string
-* response string = GETOPENTRANSACTIONSACK[{"sender": "sender public key", "recipient": "recipient public key", "amount": XXX}, ...]  
+* response string = GETOPENTRANSACTIONSRESP[{"sender": "sender public key", "recipient": "recipient public key", "amount": XXX}, ...]  
 
 
 # CHECK IF PEER IS STILL CONNECTED TO TRACKER

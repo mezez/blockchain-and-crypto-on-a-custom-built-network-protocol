@@ -26,6 +26,7 @@ peer_chains = []
 peer_open_transactions = []
 connected_peers = None
 just_connecting = True
+chain_dictionary = []
 
 exists = False
 
@@ -98,6 +99,7 @@ def get_chain():
     global peer_object
     global connected_peers
     global just_connecting
+    global chain_dictionary
     if peer_object is None:
         peer_object = Peer(port)
         # print(peer_object.__dict__)
@@ -166,6 +168,7 @@ def get_chain():
                     print(len(ch))
                     print(len(chain_dictionary))
                     if len(ch) > len(chain_dictionary):
+                        chain_dictionary = []
                         chain_dictionary = ch
                         my_open_tr = cheesechain.get_open_transactions()
                         save_able_tr = GeneralUtils.convert_transaction_object_to_dictionary(my_open_tr)
@@ -388,21 +391,21 @@ def mine():
 
 def get_connected_pears(peer_object_):
     my_connected_peers = peer_object_.request_connected_peers()
-    my_connected_peers = my_connected_peers.replace(CheeseProtocol.GETPEERSACK, '')
+    my_connected_peers = my_connected_peers.replace(CheeseProtocol.GETPEERSRESP, '')
     my_connected_peers = ast.literal_eval(my_connected_peers)
     return my_connected_peers
 
 
 def get_peer_chain(peer_object_, connected_peer_socket):
     peer_chain = peer_object_.request_chain(connected_peer_socket)
-    peer_chain = peer_chain.replace(CheeseProtocol.GETCHAINACK, '')
+    peer_chain = peer_chain.replace(CheeseProtocol.GETCHAINRESP, '')
     peer_chain = ast.literal_eval(peer_chain)
     return peer_chain
 
 
 def get_peer_transactions(peer_object_, connected_peer_socket):
     peer_tr = peer_object_.request_open_transactions(connected_peer_socket)
-    peer_tr = peer_tr.replace(CheeseProtocol.GETOPENTRANSACTIONSACK, '')
+    peer_tr = peer_tr.replace(CheeseProtocol.GETOPENTRANSACTIONSRESP, '')
     peer_tr = ast.literal_eval(peer_tr)
     return peer_tr
 
@@ -527,7 +530,7 @@ if __name__ == '__main__':
     from argparse import ArgumentParser
 
     parser = ArgumentParser()
-    parser.add_argument('-p', '--port', type=int, default=5006)
+    parser.add_argument('-p', '--port', type=int, default=5005)
     args = parser.parse_args()
     port = args.port
     print("server:" + str(port))
