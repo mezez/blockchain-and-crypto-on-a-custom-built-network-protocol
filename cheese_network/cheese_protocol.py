@@ -1,5 +1,5 @@
 class CheeseProtocol:
-    TRACKER_URL = "81.250.246.39"
+    TRACKER_URL = '192.168.43.188'
     TRACKER_HOST = '0.0.0.0'
     # TRACKER_HOST = '127.0.0.1'
     TRACKER_PORT = 9999
