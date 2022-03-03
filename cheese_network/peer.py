@@ -127,7 +127,8 @@ class Peer:
 
     def connect_to_tracker(self):
         print("Connecting to tracker")
-        s = socket.create_connection((CheeseProtocol.TRACKER_HOST, CheeseProtocol.TRACKER_PORT))
+        #s = socket.create_connection((CheeseProtocol.TRACKER_HOST, CheeseProtocol.TRACKER_PORT))
+        s = socket.create_connection((CheeseProtocol.TRACKER_URL, CheeseProtocol.TRACKER_PORT))
         self.tracker_socket = s
         print("created", s)
 

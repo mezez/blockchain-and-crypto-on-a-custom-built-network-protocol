@@ -28,6 +28,8 @@ connected_peers = None
 just_connecting = True
 chain_dictionary = []
 
+TRACKER_URL = "81.250.246.39"
+
 exists = False
 
 """routes"""
@@ -101,6 +103,7 @@ def get_chain():
     global just_connecting
     global chain_dictionary
     if peer_object is None:
+        #connection_url = TRACKER_URL+":"+port
         peer_object = Peer(port)
         # print(peer_object.__dict__)
     if peer_object is not None:
