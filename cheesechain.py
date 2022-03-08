@@ -15,7 +15,7 @@ class Cheesechain:
     CHEESECHAIN_FILE = 'chain_database/cheese_chains/cheesechain.txt'
     CHEESECHAIN_REWARD_SYSTEM = 'CHEESECHAIN REWARD SYSTEM'
     REWARD_TRANSACTION_SIGNATURE = 'rewardtransactionsignature'
-    MINING_REWARD = 10  # CHEESECOIN
+    MINING_REWARD = 0.5  # CHEESECOIN
 
     #def __init__(self, public_key, node_id, peer_object=None, connected_peers=None):
     def __init__(self, public_key, node_id):

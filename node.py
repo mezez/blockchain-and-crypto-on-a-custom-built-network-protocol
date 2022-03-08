@@ -102,6 +102,7 @@ def get_chain():
     global connected_peers
     global just_connecting
     global chain_dictionary
+    global peer_chains
     if peer_object is None:
         #connection_url = TRACKER_URL+":"+port
         peer_object = Peer(port)
@@ -114,6 +115,7 @@ def get_chain():
         if just_connecting:
             print("just connecting")
             count = 0
+            peer_chains = []
             for connected_peer in connected_peers:
                 # TODO WRAP IN TRY BLOCK AFTER TESTS
                 try:
@@ -154,11 +156,13 @@ def get_chain():
             # sys.exit("bye for now")
             # compare their chains among themselves and with yours, pick the longest chain
             chain_snapshot = cheesechain.get_chain()
+            chain_dictionary = []
             chain_dictionary = [cheese.__dict__.copy() for cheese in chain_snapshot]
             # again, convert the transactions in cheese from objects to dictionary
             for cheese_dict in chain_dictionary:
                 cheese_dict['transactions'] = [tr.__dict__ for tr in cheese_dict['transactions']]
 
+            print("length of peer chains", len(peer_chains))
             for ch in peer_chains:
                 # validate chain
                 formatted_cheesechain = []
@@ -171,11 +175,12 @@ def get_chain():
                     print(len(ch))
                     print(len(chain_dictionary))
                     if len(ch) > len(chain_dictionary):
-                        chain_dictionary = []
+                        # chain_dictionary = []
                         chain_dictionary = ch
                         my_open_tr = cheesechain.get_open_transactions()
                         save_able_tr = GeneralUtils.convert_transaction_object_to_dictionary(my_open_tr)
-                        cheesechain.overwrite_data(chain_dictionary, save_able_tr)
+                        cheesechain.overwrite_data(ch, save_able_tr)
+                        # cheesechain.load_data()
                 else:
                     continue
             # update your chain if it is outdated, notify others with different chains if so
@@ -265,7 +270,10 @@ def get_open_transactions():
     # connect to a network tracker if not connected already
     global peer_object
     global connected_peers
+    global chain_dictionary
     global just_connecting
+    global peer_chains
+    global peer_open_transactions
     if peer_object is None:
         just_connecting = True
         peer_object = Peer(port)
@@ -275,6 +283,8 @@ def get_open_transactions():
             connected_peers = get_connected_pears(peer_object)
 
         if just_connecting:
+            peer_chains = []
+            peer_open_transactions = []
             # loop through the peers and request chains from them if the peer id doesn't match yours
             count = 0
             for connected_peer in connected_peers:
@@ -316,6 +326,7 @@ def get_open_transactions():
             # compare their TR among themselves and with yours, verify and add valid ones to your sys
             # update your tr if it is outdated, notify others with different tr if so
             chain_snapshot = cheesechain.get_chain()
+            chain_dictionary = []
             chain_dictionary = [cheese.__dict__.copy() for cheese in chain_snapshot]
             # again, convert the transactions in cheese from objects to dictionary
             for cheese_dict in chain_dictionary:
