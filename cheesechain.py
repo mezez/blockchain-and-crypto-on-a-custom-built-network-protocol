@@ -121,7 +121,6 @@ class Cheesechain:
         """
 
         :param sender: the creator of transaction
-        :param participant: a person involved in a transaction
         :return: a float cumulative cheesecoin balance of the participant
         """
         if sender is None:
@@ -134,6 +133,8 @@ class Cheesechain:
 
         tx_sender = [[tx.amount for tx in cheese.transactions if tx.sender == participant] for cheese in
                      self.__my_cheesechain]
+        print('Amounts I sent')
+        print(tx_sender)
         # get all the transaction amount sent by user, waiting to be mined in open transactions queue
         print('Get balance')
         print(self.__my_cheesechain)
@@ -144,13 +145,19 @@ class Cheesechain:
         amount_sent = 0
         for tx in tx_sender:
             if len(tx) > 0:
-                amount_sent += tx[0]
+                #amount_sent += tx[0]
+                for sen in tx:
+                    amount_sent += sen
         tx_recipient = [[tx.amount for tx in cheese.transactions if tx.recipient == participant] for cheese in
                         self.__my_cheesechain]
+        print('Amounts I recieved')
+        print(tx_recipient)
         amount_received = 0
         for tx in tx_recipient:
             if len(tx) > 0:
-                amount_received += tx[0]
+                #amount_received += tx[0]
+                for rec in tx:
+                    amount_received += rec
         return amount_received - amount_sent
 
     def get_last_cheese_chain_value(self):
