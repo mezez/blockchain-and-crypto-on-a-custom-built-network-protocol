@@ -74,7 +74,7 @@ class Peer:
                 print('received connection', s)
 
                 # notify peer of successful connection
-                connection_message = CheeseProtocol.PCONNECTACK+":" + self.peer_id
+                connection_message = CheeseProtocol.PCONNECTACK + ":" + self.peer_id
                 s.send(connection_message.encode())
 
                 # and start a handle_peer thread every time
@@ -106,22 +106,22 @@ class Peer:
             self.connected_to.append(peer_info)
 
             # while True:
-                #line = MyHelpers.read_line(socket)
-                #if line is None:
-                    # end the loop when the connection is closed (readLine returns None or throws an exception)
-                 #   break
-                #else:
-                 #   print("received", line)
-                  #  if line.startswith("Connected to peer:"):
-                   #     print(line)
+            # line = MyHelpers.read_line(socket)
+            # if line is None:
+            # end the loop when the connection is closed (readLine returns None or throws an exception)
+            #   break
+            # else:
+            #   print("received", line)
+            #  if line.startswith("Connected to peer:"):
+            #     print(line)
 
-                    # action for receiving newly mined cheese notification from peer
-                    # maybe the broadcast should come with the cheesechain and open transactions
+            # action for receiving newly mined cheese notification from peer
+            # maybe the broadcast should come with the cheesechain and open transactions
 
+            # action for receiving cheesechain from peers
 
-                    # action for receiving cheesechain from peers
+            # s.close()
 
-            #s.close()
         t = Thread(target=handle_connect)
         return t
 
@@ -129,7 +129,7 @@ class Peer:
         print("Connecting to tracker")
         print("host", CheeseProtocol.TRACKER_URL)
         print("port", CheeseProtocol.TRACKER_PORT)
-        #s = socket.create_connection((CheeseProtocol.TRACKER_HOST, CheeseProtocol.TRACKER_PORT))
+        # s = socket.create_connection((CheeseProtocol.TRACKER_HOST, CheeseProtocol.TRACKER_PORT))
         s = socket.create_connection((CheeseProtocol.TRACKER_URL, CheeseProtocol.TRACKER_PORT))
         self.tracker_socket = s
         print("created", s)
@@ -178,8 +178,8 @@ class Peer:
                     initial_listening = False
                     # return self.__dict__
 
-        #handle subsequent messages from tracker
-        #s.close()
+        # handle subsequent messages from tracker
+        # s.close()
 
     # peers connected to you and the ones you connected to
     def handle_peers(self, socket, my_queue=None):
@@ -286,7 +286,8 @@ class Peer:
                         wallet = Wallet(node_id)
                         wallet.load_keys()
                         cheesechain = Cheesechain(wallet.public_key, node_id)
-                        added = cheesechain.add_transaction(tr['recipient'], tr['sender'], tr['signature'], tr['amount'])
+                        added = cheesechain.add_transaction(tr['recipient'], tr['sender'], tr['signature'],
+                                                            tr['amount'])
 
                         """OR: if this peer will also re broadcast to its peers, leading to a chain reaction"""
                         # hopefully the node module will already be set up by the time this event occurs lol
@@ -301,14 +302,13 @@ class Peer:
                         # TODO SEND DISCONNECTION MESSAGE
                         socket.close()
 
-
         t = Thread(target=handle)
         return t
 
     def request_connected_peers(self):
         print(self.tracker_socket)
-        if self.connected_peers is not None:
-            return self.connected_peers
+        # if self.connected_peers is not None:
+        # return self.connected_peers
         if self.peer_id is not None and self.tracker_socket is not None:
             request = CheeseProtocol.GETPEERS + ':' + self.peer_id
             Peer.send_message(request, self.tracker_socket)
@@ -321,7 +321,7 @@ class Peer:
                     # end the loop when the connection is closed (readLine returns None or throws an exception)
                     print("No response received")
                     break
-                    #pass
+                    # pass
                 else:
                     print("RECEIVED LINE (CONNECTED PEERS):")
                     print("received", line)
