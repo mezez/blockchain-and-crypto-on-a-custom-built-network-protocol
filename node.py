@@ -108,8 +108,8 @@ def get_chain():
         peer_object = Peer(port)
         # print(peer_object.__dict__)
     if peer_object is not None:
-        if connected_peers is None:
-            connected_peers = get_connected_pears(peer_object)
+        #if connected_peers is None:
+        connected_peers = get_connected_pears(peer_object)
 
         # loop through the peers and request chains from them if the peer id doesn't match yours
         if just_connecting:
@@ -279,8 +279,8 @@ def get_open_transactions():
         peer_object = Peer(port)
         # print(peer_object.__dict__)
     if peer_object is not None:
-        if connected_peers is None:
-            connected_peers = get_connected_pears(peer_object)
+        #if connected_peers is None:
+        connected_peers = get_connected_pears(peer_object)
 
         if just_connecting:
             peer_chains = []
