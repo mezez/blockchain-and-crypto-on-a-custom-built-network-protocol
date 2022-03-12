@@ -171,32 +171,54 @@ class Cheesechain:
 
     def transaction_exists_in_cheesechain(self, chain_dictionary_list, recipient, sender, signature, amount):
         exists = False
-        for cheese in chain_dictionary_list.reverse():
-            cheese_transactions = cheese["transactions"].reverse()
-            for tr in cheese_transactions:
-                if sender == tr['sender'] and recipient == \
-                        tr['recipient'] and amount == tr['amount'] \
-                        and signature == tr['signature']:
+        index = len(chain_dictionary_list) - 1
+        count = 0
+        while count < len(chain_dictionary_list):
+            cheese = chain_dictionary_list[index]
+            cheese_transactions = cheese["transactions"]
+            transaction_index = len(cheese_transactions) - 1
+            count_sec = 0
+            while count_sec < len(cheese_transactions):
+                if sender == cheese_transactions[transaction_index]['sender'] and recipient == \
+                        cheese_transactions[transaction_index]['recipient'] and amount == cheese_transactions[transaction_index]['amount'] \
+                        and signature == cheese_transactions[transaction_index]['signature']:
                     exists = True
+                if exists:
+                    break
+                count_sec += 1
+                transaction_index -= 1
+            if exists:
+                break
+            count += 1
+            index -= 1
         return exists
 
     def remove_already_added_transactions(self, chain_dictionary_list):
-
         my_open_tr = [tr for tr in self.__open_transactions]
         for open_transaction in my_open_tr:
             exists = False
-            for cheese in chain_dictionary_list.reverse():
-                cheese_transactions = cheese["transactions"].reverse()
-                for tr in cheese_transactions:
-                    if open_transaction.sender == tr['sender'] and open_transaction.recipient == \
-                            tr['recipient'] and open_transaction.amount == tr['amount'] \
-                            and open_transaction.signature == tr['signature']:
+            index = len(chain_dictionary_list) - 1
+            count = 0
+            while count < len(chain_dictionary_list):
+                cheese = chain_dictionary_list[index]
+                cheese_transactions = cheese["transactions"]
+                transaction_index = len(cheese_transactions) - 1
+                count_sec = 0
+                while count_sec < len(cheese_transactions):
+                    if open_transaction.sender == cheese_transactions[transaction_index]['sender'] and open_transaction.recipient == \
+                            cheese_transactions[transaction_index]['recipient'] and open_transaction.amount == cheese_transactions[transaction_index]['amount'] \
+                            and open_transaction.signature == cheese_transactions[transaction_index]['signature']:
                         exists = True
+
+                    if exists:
+                        break
+                    count_sec += 1
+                    transaction_index -= 1
                 if exists:
-                    break
-            if exists:
-                self.__open_transactions.remove(open_transaction)
-                self.save_data()
+                    self.__open_transactions.remove(open_transaction)
+                    self.save_data()
+                count += 1
+                index -= 1
         return True
 
 

@@ -360,14 +360,15 @@ def get_open_transactions():
                     exists = False
                     cheesechain.load_data()
                     my_open_tr = cheesechain.get_open_transactions()
-                    for open_transaction in my_open_tr:
-                        if open_transaction.sender == incoming_transaction['sender'] and open_transaction.recipient == \
-                                incoming_transaction['recipient'] and open_transaction.amount == incoming_transaction[
-                            'amount'] \
-                                and open_transaction.signature == incoming_transaction['signature']:
-                            exists = True
-                        if exists:
-                            break
+                    if len(my_open_tr) > 0:
+                        for open_transaction in my_open_tr:
+                            if open_transaction.sender == incoming_transaction['sender'] and open_transaction.recipient == \
+                                    incoming_transaction['recipient'] and open_transaction.amount == incoming_transaction[
+                                'amount'] \
+                                    and open_transaction.signature == incoming_transaction['signature']:
+                                exists = True
+                            if exists:
+                                break
                     if not exists:
                         # check if transaction already exists in chain
                         transaction_already_in_chain = cheesechain.transaction_exists_in_cheesechain(
@@ -378,7 +379,8 @@ def get_open_transactions():
                                                         incoming_transaction['sender'],
                                                         incoming_transaction['signature'], incoming_transaction['amount'])
             # remove already added transactions
-            cheesechain.remove_already_added_transactions(chain_dictionary)
+            if chain_dictionary is not None:
+                cheesechain.remove_already_added_transactions(chain_dictionary)
 
     cheesechain.load_data()
     transactions = cheesechain.get_open_transactions()  # transactions object
