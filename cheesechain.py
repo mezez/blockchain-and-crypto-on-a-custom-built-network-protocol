@@ -17,7 +17,7 @@ class Cheesechain:
     REWARD_TRANSACTION_SIGNATURE = 'rewardtransactionsignature'
     MINING_REWARD = 0.5  # CHEESECOIN
 
-    #def __init__(self, public_key, node_id, peer_object=None, connected_peers=None):
+    # def __init__(self, public_key, node_id, peer_object=None, connected_peers=None):
     def __init__(self, public_key, node_id):
         # starting cheese for the cheesechain
         raclette_cheese = Cheese(0, '', [], 100, 0)
@@ -28,7 +28,6 @@ class Cheesechain:
         self.public_key = public_key
         # self.peer_object = peer_object
         # self.connected_peers = connected_peers
-
 
     # @property
     # def chain(self):
@@ -71,7 +70,8 @@ class Cheesechain:
                 open_transactions = json.loads(file_contents[1])  # first line is the cheesechain
                 formatted_transactions = []
                 for transaction in open_transactions:
-                    formatted_transaction = Transaction(transaction['sender'], transaction['recipient'], transaction['signature'],transaction['amount'])
+                    formatted_transaction = Transaction(transaction['sender'], transaction['recipient'],
+                                                        transaction['signature'], transaction['amount'])
                     formatted_transactions.append(formatted_transaction)
                 self.__open_transactions = formatted_transactions
         except IOError:
@@ -145,7 +145,7 @@ class Cheesechain:
         amount_sent = 0
         for tx in tx_sender:
             if len(tx) > 0:
-                #amount_sent += tx[0]
+                # amount_sent += tx[0]
                 for sen in tx:
                     amount_sent += sen
         tx_recipient = [[tx.amount for tx in cheese.transactions if tx.recipient == participant] for cheese in
@@ -155,7 +155,7 @@ class Cheesechain:
         amount_received = 0
         for tx in tx_recipient:
             if len(tx) > 0:
-                #amount_received += tx[0]
+                # amount_received += tx[0]
                 for rec in tx:
                     amount_received += rec
         return amount_received - amount_sent
@@ -168,6 +168,37 @@ class Cheesechain:
         if len(self.__my_cheesechain) < 1:
             return None
         return self.__my_cheesechain[-1]
+
+    def transaction_exists_in_cheesechain(self, chain_dictionary_list, recipient, sender, signature, amount):
+        exists = False
+        for cheese in chain_dictionary_list.reverse():
+            cheese_transactions = cheese["transactions"].reverse()
+            for tr in cheese_transactions:
+                if sender == tr['sender'] and recipient == \
+                        tr['recipient'] and amount == tr['amount'] \
+                        and signature == tr['signature']:
+                    exists = True
+        return exists
+
+    def remove_already_added_transactions(self, chain_dictionary_list):
+
+        my_open_tr = [tr for tr in self.__open_transactions]
+        for open_transaction in my_open_tr:
+            exists = False
+            for cheese in chain_dictionary_list.reverse():
+                cheese_transactions = cheese["transactions"].reverse()
+                for tr in cheese_transactions:
+                    if open_transaction.sender == tr['sender'] and open_transaction.recipient == \
+                            tr['recipient'] and open_transaction.amount == tr['amount'] \
+                            and open_transaction.signature == tr['signature']:
+                        exists = True
+                if exists:
+                    break
+            if exists:
+                self.__open_transactions.remove(open_transaction)
+                self.save_data()
+        return True
+
 
     def add_transaction(self, recipient, sender, signature, amount=1.0):
         """
@@ -236,7 +267,8 @@ class Cheesechain:
 
     def add_cheese(self, cheese):
         # validate and add
-        transactions = [Transaction(tr['sender'], tr['recipient'], tr['signature'], tr['amount']) for tr in cheese['transactions']]
+        transactions = [Transaction(tr['sender'], tr['recipient'], tr['signature'], tr['amount']) for tr in
+                        cheese['transactions']]
 
         # confirm proof of work
         is_valid = Verification.valid_proof(transactions[:-1], cheese['parent_smell'], cheese['nonce'])
@@ -247,13 +279,16 @@ class Cheesechain:
 
         if not is_valid or not hashes_match:
             return False
-        converted_cheese = Cheese(cheese['sequence_number'], cheese['parent_smell'], transactions, cheese['nonce'], cheese['timestamp'])
+        converted_cheese = Cheese(cheese['sequence_number'], cheese['parent_smell'], transactions, cheese['nonce'],
+                                  cheese['timestamp'])
         self.__my_cheesechain.append(converted_cheese)
         # update my open transactions
         stored_transactions = self.__open_transactions[:]
         for incoming_transaction in cheese['transactions']:
             for open_transaction in stored_transactions:
-                if open_transaction.sender == incoming_transaction['sender'] and open_transaction.recipient == incoming_transaction['recipient'] and open_transaction.amount == incoming_transaction['amount'] and open_transaction.signature == incoming_transaction['signature']:
+                if open_transaction.sender == incoming_transaction['sender'] and open_transaction.recipient == \
+                        incoming_transaction['recipient'] and open_transaction.amount == incoming_transaction[
+                    'amount'] and open_transaction.signature == incoming_transaction['signature']:
                     try:
                         self.__open_transactions.remove(open_transaction)
                     except ValueError:
