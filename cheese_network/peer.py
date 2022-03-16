@@ -301,6 +301,9 @@ class Peer:
                     if request_type == CheeseProtocol.BRTRANSACTIONACK:
                         # TODO SEND DISCONNECTION MESSAGE
                         socket.close()
+                    if request_type == CheeseProtocol.HCK:
+                        res = CheeseProtocol.HCKACK
+                        socket.sendall(res.encode())
 
         t = Thread(target=handle)
         return t
