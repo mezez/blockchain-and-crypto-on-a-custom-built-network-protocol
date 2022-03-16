@@ -1,6 +1,9 @@
 import queue
 import uuid
 from threading import Thread
+import time
+import func_timeout
+import schedule
 import socket
 from my_helpers import MyHelpers
 from cheese_protocol import CheeseProtocol
@@ -25,6 +28,7 @@ def main():  # called at the end of the file
 
     # start a new thread to accept new connections
     handle_accept_all(q).start()
+    # handle_health_check().start()
 
 
 def handle_accept_all(my_queue):
@@ -109,27 +113,56 @@ def handle_peer(socket, my_queue):
     return t
 
 
-def consumer(d, q):
-    def consume():
-        while True:
-            e = q.get()
-            if e == "RENDER":
-                d.render()
-            else:
-                i, v, direction = e
-                if direction is None:
-                    d.add_value(i, v)
-                else:
-                    d.move_value_right(i, direction, v)
+def health_check(peer_info):
+    request = CheeseProtocol.HCK
+    request = request.encode()
+    peer_socket = peer_info['socket']
+    peer_socket.sendall(request)
 
-    t = Thread(target=consume)
-    return t
+    listening_for_response = True
+    response = None
+
+    while listening_for_response:
+        line = MyHelpers.custom_read(peer_socket)
+        if line is None:
+            # end the loop when the connection is closed (readLine returns None or throws an exception)
+            print("No response received")
+            break
+            # pass
+        else:
+            print("RECEIVED LINE (HEALTH CHECK ACKNOWLEDGMENT):")
+            print("received", line)
+            if line.startswith(CheeseProtocol.HCKACK):
+                response = line
+                listening_for_response = False
+    if response is None:
+        # peer is probably disconnected from the network, remove
+        connected_peers.remove(peer_info)
+    return
 
 
-def is_magic_word(word):
-    if word == magic_word:
+def run_health_check():
+    max_wait = 5
+    print('Health check called')
+    my_connected_peers = [peer for peer in connected_peers]
+    if len(my_connected_peers) == 0:
         return True
-    return False
+    else:
+        for peer_info in my_connected_peers:
+            try:
+                return func_timeout.func_timeout(max_wait, health_check(peer_info))
+            except func_timeout.FunctionTimedOut:
+                pass
+        return True
+
+
+def handle_health_check():
+    def handle():
+        print('Health check activated')
+        schedule.every(15).seconds.do(run_health_check)
+
+    t = Thread(target=handle)
+    return t
 
 
 if __name__ == "__main__":

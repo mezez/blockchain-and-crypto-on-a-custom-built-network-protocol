@@ -104,12 +104,12 @@ def get_chain():
     global chain_dictionary
     global peer_chains
     if peer_object is None:
-        #connection_url = TRACKER_URL+":"+port
+        # connection_url = TRACKER_URL+":"+port
         peer_object = Peer(port)
         # print(peer_object.__dict__)
     if peer_object is not None:
-        if connected_peers is None:
-            connected_peers = get_connected_pears(peer_object)
+        # if connected_peers is None:
+        connected_peers = get_connected_pears(peer_object)
 
         # loop through the peers and request chains from them if the peer id doesn't match yours
         if just_connecting:
@@ -279,8 +279,8 @@ def get_open_transactions():
         peer_object = Peer(port)
         # print(peer_object.__dict__)
     if peer_object is not None:
-        if connected_peers is None:
-            connected_peers = get_connected_pears(peer_object)
+        # if connected_peers is None:
+        connected_peers = get_connected_pears(peer_object)
 
         if just_connecting:
             peer_chains = []
@@ -351,29 +351,37 @@ def get_open_transactions():
                 else:
                     continue
             # just_connecting = False
-    # update transactions
-    print('open transactions')
-    print(peer_open_transactions)
-    for peer_transactions in peer_open_transactions:
-        for incoming_transaction in peer_transactions:
-            global exists
-            exists = False
-            cheesechain.load_data()
-            my_open_tr = cheesechain.get_open_transactions()
-            for open_transaction in my_open_tr:
-                if open_transaction.sender == incoming_transaction['sender'] and open_transaction.recipient == \
-                        incoming_transaction['recipient'] and open_transaction.amount == incoming_transaction['amount']\
-                        and open_transaction.signature == incoming_transaction['signature']:
-                    exists = True
-                if exists:
-                    break
-            if not exists:
-                cheesechain.add_transaction(incoming_transaction['recipient'], incoming_transaction['sender'],
-                                            incoming_transaction['signature'], incoming_transaction['amount'])
+            # update transactions
+            print('open transactions')
+            print(peer_open_transactions)
+            for peer_transactions in peer_open_transactions:
+                for incoming_transaction in peer_transactions:
+                    global exists
+                    exists = False
+                    cheesechain.load_data()
+                    my_open_tr = cheesechain.get_open_transactions()
+                    if len(my_open_tr) > 0:
+                        for open_transaction in my_open_tr:
+                            if open_transaction.sender == incoming_transaction['sender'] and open_transaction.recipient == \
+                                    incoming_transaction['recipient'] and open_transaction.amount == incoming_transaction[
+                                'amount'] \
+                                    and open_transaction.signature == incoming_transaction['signature']:
+                                exists = True
+                            if exists:
+                                break
+                    if not exists:
+                        # check if transaction already exists in chain
+                        transaction_already_in_chain = cheesechain.transaction_exists_in_cheesechain(
+                            chain_dictionary, incoming_transaction['recipient'], incoming_transaction['sender'],
+                            incoming_transaction['signature'], incoming_transaction['amount'])
+                        if transaction_already_in_chain is False:
+                            cheesechain.add_transaction(incoming_transaction['recipient'],
+                                                        incoming_transaction['sender'],
+                                                        incoming_transaction['signature'], incoming_transaction['amount'])
+            # remove already added transactions
+            if chain_dictionary is not None:
+                cheesechain.remove_already_added_transactions(chain_dictionary)
 
-    # for peer_transactions in peer_open_transactions:
-    #     for tr in peer_transactions:
-    #         cheesechain.add_transaction(tr['recipient'], tr['sender'], tr['signature'], tr['amount'])
     cheesechain.load_data()
     transactions = cheesechain.get_open_transactions()  # transactions object
     transactions_dictionary = [tr.__dict__ for tr in transactions]
