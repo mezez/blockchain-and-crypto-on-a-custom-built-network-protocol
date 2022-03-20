@@ -30,24 +30,6 @@ class Peer:
 
         self.connect_to_tracker()
 
-    @staticmethod
-    def main_old():  # called at the end of the file
-        print("Creating connection")
-        s = socket.create_connection(('localhost', CheeseProtocol.TRACKER_PORT))
-        print("created", s)
-
-        message_count = 0
-        while message_count < 50:
-            time.sleep(decimal.Decimal(random.randrange(1, 99)) / 100)
-            Peer.send_magic_word(s)
-            message_count = message_count + 1
-
-        s.close()
-
-        # while True:
-        #     l = netutils.read_line(s)
-        #     print("got reply:", l)
-
     def main(self):  # called at the end of the file
 
         # for storing clients requests
@@ -463,4 +445,5 @@ class Peer:
 
 
 if __name__ == "__main__":
-    Peer.main()
+    pass
+    # Peer.main()
