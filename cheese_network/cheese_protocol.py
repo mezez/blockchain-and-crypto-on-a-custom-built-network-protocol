@@ -1,5 +1,4 @@
 class CheeseProtocol:
-    TRACKER_URL_DIFFERENT_COMPUTERS = '192.168.43.188'
     TRACKER_URL = '192.168.43.188'
     # TRACKER_URL = 'localhost'
     TRACKER_HOST = '0.0.0.0'
