@@ -72,3 +72,7 @@ When peer is connected to other peers, it can request or share cheesechains, ope
 * Note: To ensure synchronisation, peers continuously request list of connected peers from tracker when they want to get these updated information in other to resolve issues such as the first peer on the network having no peers to interact with, etc.
 
 After mining is complete or transactions are creating, a broadcast is made to other connected peers to ensure that they have the newest information of cheesechain or transactions depending of our action. It is important to note however that the User interface is not reactive to these changes and the applicable buttons need to be click to reflect these changes made by other peers
+
+## References:
+
+* https://www.youtube.com/watch?v=KARxDX5DTgY
