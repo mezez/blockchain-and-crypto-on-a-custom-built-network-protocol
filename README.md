@@ -75,4 +75,5 @@ After mining is complete or transactions are creating, a broadcast is made to ot
 
 ## References:
 
-* https://www.youtube.com/watch?v=KARxDX5DTgY
+* The building blocks of the blockchain(cheesechain) of this project was from the tutorial found at https://www.youtube.com/watch?v=KARxDX5DTgY.
+* This was subsequently built upon/modified and adapted to suit the requirements of this project
