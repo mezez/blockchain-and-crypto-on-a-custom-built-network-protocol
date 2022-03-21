@@ -117,11 +117,34 @@ class CheeseChainTest(unittest.TestCase):
         self.assertEqual(type(result), Cheese)
 
     def test_transaction_exists_in_cheesechain(self):
-        return True
+        recipient = "30819f300d06092a818d6c99090203010001"
+        sender = "CHEESECHAIN REWARD SYSTEM"
+        signature = "rewardtransactionsignature"
+        amount = 10
+        public_key = "30819f300d06092a864886f70d010101050003818d0030818902818100d7dcb93709aff291b10c3634276aa53f7912749e269f9da7e906d07b1de590f0486a52bc0ba60cc9ad2a6126324f021a670aec0b5da311859f875749122becd63a4053ef366764816c0337b61e9dc7b4e009dd97dc41cc66861c488552a70c26b02a10076ae26a5f17e67f4b8e0078d6b4a73df0f713cf77267c34bb94564c310203010001"
+        node_id = 1
+        sample_chain = Cheesechain(public_key, node_id)
+        chain_snapshot = sample_chain.get_chain()
+        chain_dictionary = [cheese.__dict__.copy() for cheese in chain_snapshot]
+        # again, convert the transactions in cheese from objects to dictionary
+        for cheese_dict in chain_dictionary:
+            cheese_dict['transactions'] = [tr.__dict__ for tr in cheese_dict['transactions']]
+
+        result = sample_chain.transaction_exists_in_cheesechain(chain_dictionary, recipient, sender, signature, amount)
+        self.assertEqual(type(result), bool)
+
 
     def test_remove_already_added_transactions(self):
-
-        return True
+        public_key = "30819f300d06092a864886f70d010101050003818d0030818902818100d7dcb93709aff291b10c3634276aa53f7912749e269f9da7e906d07b1de590f0486a52bc0ba60cc9ad2a6126324f021a670aec0b5da311859f875749122becd63a4053ef366764816c0337b61e9dc7b4e009dd97dc41cc66861c488552a70c26b02a10076ae26a5f17e67f4b8e0078d6b4a73df0f713cf77267c34bb94564c310203010001"
+        node_id = 1
+        sample_chain = Cheesechain(public_key, node_id)
+        chain_snapshot = sample_chain.get_chain()
+        chain_dictionary = [cheese.__dict__.copy() for cheese in chain_snapshot]
+        # again, convert the transactions in cheese from objects to dictionary
+        for cheese_dict in chain_dictionary:
+            cheese_dict['transactions'] = [tr.__dict__ for tr in cheese_dict['transactions']]
+        result = sample_chain.remove_already_added_transactions(chain_dictionary)
+        self.assertEqual(result, True)
 
     def test_add_transaction(self):
         public_key = "30819f300d06092a864886f70d010101050003818d0030818902818100d7dcb93709aff291b10c3634276aa53f7912749e269f9da7e906d07b1de590f0486a52bc0ba60cc9ad2a6126324f021a670aec0b5da311859f875749122becd63a4053ef366764816c0337b61e9dc7b4e009dd97dc41cc66861c488552a70c26b02a10076ae26a5f17e67f4b8e0078d6b4a73df0f713cf77267c34bb94564c310203010001"
@@ -146,10 +169,12 @@ class CheeseChainTest(unittest.TestCase):
 
     def test_add_cheese(self):
         sample_cheese = Cheese(1, "589aabe32e398b6b8e3eab39ebdd3976b657dbdf8562251af0b04d2c6d1d6e0c", [{"sender": "CHEESECHAIN REWARD SYSTEM", "recipient": "30819f300d06092a818d6c99090203010001", "amount": 10, "signature": "rewardtransactionsignature"}], 6, 1647429844.220142)
+
+        sample_cheese['transactions'] = [tr.__dict__ for tr in sample_cheese['transactions']]
         public_key = "30819f300d06092a864886f70d010101050003818d0030818902818100d7dcb93709aff291b10c3634276aa53f7912749e269f9da7e906d07b1de590f0486a52bc0ba60cc9ad2a6126324f021a670aec0b5da311859f875749122becd63a4053ef366764816c0337b61e9dc7b4e009dd97dc41cc66861c488552a70c26b02a10076ae26a5f17e67f4b8e0078d6b4a73df0f713cf77267c34bb94564c310203010001"
         node_id = 0
         cheese_chain_instance = Cheesechain(public_key, node_id)
-        result = Cheesechain.add_cheese(cheese_chain_instance, sample_cheese)
+        result = cheese_chain_instance.add_cheese(sample_cheese)
         self.assertEqual(type(result), bool)
 
     #node.py
