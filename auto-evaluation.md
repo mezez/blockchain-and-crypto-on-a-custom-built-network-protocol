@@ -2,7 +2,7 @@
 
 Our goal was to implement a blockchain peer to peer system inspired by Bitcoin, essentially, a cryptocurrency, cheesecoins running on a cheesechain (blockchain). Additionally, the interconnection between the peers in the system was to be done via a custom designed and built network protocol.
 
-**What works:**
+**What works compared to our objectives:**
 
 - Tracker:
 
@@ -49,7 +49,7 @@ Team leader: Chimezirim Victor EKEMAM
 | Chimezirim Victor EKEMAM |~54| Cheesechain Design and Implementation/GUI, Network Protocol/Tracker & Peer, Integration Testing |
 | Ignas BARAKAUSKAS |~40| Cheesechain Debugging and Modifications, Integration Testing, Documentation (Readme.md)|
 | Soumya KUMBAR |~40| Cheesechain Debugging and Modification Unit Testing implementation, Integration Testing |
-| Sara Assefa ALEMAYEHU |~40| Cheesechain Debugging and Modification, Documentation (Auto Evaluation,Retrospective), Integration Testing |
+| Sara Assefa ALEMAYEHU |~40| Cheesechain Debugging and Modification, Documentation (Auto Evaluation, Retrospective), Integration Testing |
 
 **Good Development Practices we followed and an evaluation**
 
