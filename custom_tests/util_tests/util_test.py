@@ -8,14 +8,13 @@ from utils.verification import Verification
 from transaction import Transaction
 
 
-
 class UtilTest(unittest.TestCase):
 
     def test_hash(self):
         hash_method = hash_util.hash_string_sha256
         string_to_hash = "jgjgjk".encode()
         result = hash_method(string_to_hash)
-        self.assertNotEqual(string_to_hash, result, "Hssh successful")
+        self.assertNotEqual(string_to_hash, result, "Hash successful")
         # assert string_to_hash != result
 
     def test_hash_cheese(self):
@@ -53,47 +52,35 @@ class UtilTest(unittest.TestCase):
         print(cheese_type)
         self.assertEqual(result_type, cheese_type)
 
-    #def test_convert_transaction_object_to_dictionary(self):
-        # Need a transaction object
-        # Need a transaction dict
-        # compare both types
-        # Also check if it has all the fields
-
-        #sample_transaction = transaction.Transaction("CHEESECHAIN REWARD SYSTEM", "30819f300d06092a86001", "rewardtransactionsignature", 10)
-
-        #sample_transaction = {"sender": "CHEESECHAIN REWARD SYSTEM", "recipient": "30819f300d06092a86001", "amount": 10, "signature": "rewardtransactionsignature"}
-        #transaction_type = type(sample_transaction)
-
-        #print(transaction_type)
-        #result = utils.GeneralUtils.convert_transaction_object_to_dictionary(sample_transaction)
-       # result_type = type(result)
-       # if result['sender'] == "":
-       #     self.fail("Sender can not be null")
-       # if result['recipient'] == "":
-       #     self.fail("Recipient can not be null")
-       # if result['amount'] == "":
-       #     self.fail("Amount can not be null")
-       # if result['signature'] == "":
-       #     self.fail("Signature can not be null")
-
-        #self.assertNotEqual(result_type, None)
-        #self.assertEqual(result_type, transaction_type)
-
     def test_valid_proof(self):
-        sample_cheese = Cheese(1, "589aabe32e398b6b8e3eab39ebdd3976b657dbdf8562251af0b04d2c6d1d6e0c", [{"sender": "CHEESECHAIN REWARD SYSTEM", "recipient": "30819f300d06092a818d6c99090203010001", "amount": 10, "signature": "rewardtransactionsignature"}], 6, 1647429844.220142)
+        sample_cheese = Cheese(1, "589aabe32e398b6b8e3eab39ebdd3976b657dbdf8562251af0b04d2c6d1d6e0c", [
+            {"sender": "CHEESECHAIN REWARD SYSTEM", "recipient": "30819f300d06092a818d6c99090203010001", "amount": 10,
+             "signature": "rewardtransactionsignature"}], 6, 1647429844.220142)
         formattted_transactions = self.convert_dict_transaction_to_object_transaction(sample_cheese.transactions)
         result = Verification.valid_proof(formattted_transactions, sample_cheese.parent_smell, sample_cheese.nonce)
         result_type = type(result)
         self.assertEqual(result_type, bool)
 
     def test_verify_chain(self):
-        valid_cheesechain = [{"sequence_number": 0, "parent_smell": "", "transactions": [], "nonce": 100, "timestamp": 0}, {"sequence_number": 1, "parent_smell": "589aabe32e398b6b8e3eab39ebdd3976b657dbdf8562251af0b04d2c6d1d6e0c", "transactions": [{"sender": "CHEESECHAIN REWARD SYSTEM", "recipient": "30819f300d06092a864886f70d010101050003818d0030818902818100d847a586a3521e8967ffe9d494bf9b070b1752c98c2bc251231a29c3546678a357f2d18563756aa4ea2be80aa8e9f9f6760cfa8c8322471f2a40f8b3ddcc20603ecf041a6b4ebb9027cc1e88982ecd727407181beeaeb971b23de7d9a635dc046e67a3e62a79edeaeb4a419f633cb63244076429b21d78dfe5e213b166610bd90203010001", "amount": 0.5, "signature": "rewardtransactionsignature"}], "nonce": 6, "timestamp": 1647429844.220142}]
+        valid_cheesechain = [
+            {"sequence_number": 0, "parent_smell": "", "transactions": [], "nonce": 100, "timestamp": 0},
+            {"sequence_number": 1, "parent_smell": "589aabe32e398b6b8e3eab39ebdd3976b657dbdf8562251af0b04d2c6d1d6e0c",
+             "transactions": [{"sender": "CHEESECHAIN REWARD SYSTEM",
+                               "recipient": "30819f300d06092a864886f70d010101050003818d0030818902818100d847a586a3521e8967ffe9d494bf9b070b1752c98c2bc251231a29c3546678a357f2d18563756aa4ea2be80aa8e9f9f6760cfa8c8322471f2a40f8b3ddcc20603ecf041a6b4ebb9027cc1e88982ecd727407181beeaeb971b23de7d9a635dc046e67a3e62a79edeaeb4a419f633cb63244076429b21d78dfe5e213b166610bd90203010001",
+                               "amount": 0.5, "signature": "rewardtransactionsignature"}], "nonce": 6,
+             "timestamp": 1647429844.220142}]
         formatted_cheesechain1 = self.convert_dict_cheesechain_to_object_cheesechain(valid_cheesechain)
 
         result1 = Verification.verify_chain(formatted_cheesechain1)
         self.assertEqual(result1, True)
 
-        invalid_cheesechain = [{"sequence_number": 0, "parent_smell": "", "transactions": [], "nonce": 10, "timestamp": 0}, {"sequence_number": 2, "parent_smell": "589aabe32e398b6b8e3eab39ebdd3976b657dbdf8562251af0b04d2c6d1d6e0c", "transactions": [{"sender": "CHEESECHAIN REWARD SYSTEM", "recipient": "30819f300d06092a864886f70d010101050003818d0030818902818100d847a586a3521e8967ffe9d494bf9b070b1752c98c2bc251231a29c3546678a357f2d18563756aa4ea2be80aa8e9f9f6760cfa8c8322471f2a40f8b3ddcc20603ecf041a6b4ebb9027cc1e88982ecd727407181beeaeb971b23de7d9a635dc046e67a3e62a79edeaeb4a419f633cb63244076429b21d78dfe5e213b166610bd90203010001", "amount": 0.5, "signature": "rewardtransactionsignature"}], "nonce": 6, "timestamp": 1647429844.220142}]
+        invalid_cheesechain = [
+            {"sequence_number": 0, "parent_smell": "", "transactions": [], "nonce": 10, "timestamp": 0},
+            {"sequence_number": 2, "parent_smell": "589aabe32e398b6b8e3eab39ebdd3976b657dbdf8562251af0b04d2c6d1d6e0c",
+             "transactions": [{"sender": "CHEESECHAIN REWARD SYSTEM",
+                               "recipient": "30819f300d06092a864886f70d010101050003818d0030818902818100d847a586a3521e8967ffe9d494bf9b070b1752c98c2bc251231a29c3546678a357f2d18563756aa4ea2be80aa8e9f9f6760cfa8c8322471f2a40f8b3ddcc20603ecf041a6b4ebb9027cc1e88982ecd727407181beeaeb971b23de7d9a635dc046e67a3e62a79edeaeb4a419f633cb63244076429b21d78dfe5e213b166610bd90203010001",
+                               "amount": 0.5, "signature": "rewardtransactionsignature"}], "nonce": 6,
+             "timestamp": 1647429844.220142}]
         formatted_cheesechain2 = self.convert_dict_cheesechain_to_object_cheesechain(invalid_cheesechain)
         result2 = Verification.verify_chain(formatted_cheesechain2)
         self.assertNotEqual(result2, True)
@@ -120,6 +107,7 @@ class UtilTest(unittest.TestCase):
             for transaction in transactions
         ]
         return formatted_tx
+
 
 if __name__ == '__main__':
     unittest.main()

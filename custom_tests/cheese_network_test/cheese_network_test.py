@@ -24,6 +24,7 @@ class CheeseNetworkTest(unittest.TestCase):
         self.assertEqual(type(result), Thread)
 
     def test_connect_to_tracker(self):
+        """TO RUN THIS SUCCESSFULLY, YOU NEED TO HAVE THE TRACKER RUNNING"""
         node_id = 1
         host = None
         port = None

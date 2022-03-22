@@ -12,13 +12,16 @@ Our peer to peer system should work either as multiple instances on the same dev
 
 To run the project you must have python version 3.9.*. Inside a terminal, you need to run these commands in this order to setup all required libraries:
 
-1. python -m venv venv to create a virtual environment if not already automatically created by using environments such as pycharm
+1. python -m venv venv to create a virtual environment (if not already automatically created by using environments such as pycharm)
 2. venv\Scripts\activate
-3. pip install -r requirements.txt
+3. pip install -r requirements.txt  
+(Steps 1 and 2 above can be skipped if already handled by your IDE or dev environment. The ultimate goal is to be able to install the requirements in the requirements.txt file)
 
 *Running the project:*
 
-To run the project in beginning you must set TRACKER_URL variable at the top of the cheese_network/cheese_protocol.py file to your IP address. For running all tests on a single computer, this can be set to "localhost". For different computers over a network e.g. on a mobile hotspot.
+To run the project in beginning you must set TRACKER_URL variable at the top of the cheese_network/cheese_protocol.py file to your IP address. For running all tests on a single computer, this can be set to "localhost".  
+
+For different computers over a network e.g. on a mobile hotspot:
 
 1. Connect your tracker computer as well as the peers computers to the applicable hotspot
 2. Go to your hotspot settings to find the allocated IP address of the tracker computer
@@ -75,7 +78,14 @@ When peer is connected to other peers, it can request or share cheesechain, open
 * For loading open transactions,to ensure that the peer keeps an accurate list of valid transactions, it validates if sender/receiver are valid peers (or if the sender is the cheesechain reward system, in the case of a successful mine), if transaction doesn't already exist in list of transactions to avoid creating duplicates and if transaction was not already mined.
 * Note: To ensure synchronisation, peers continuously request list of connected peers from tracker when they want to get these updated information in other to resolve issues such as the first peer on the network having no peers to interact with, etc.
 
-After mining is complete or transactions are created, a broadcast is made to other connected peers to ensure that they have the newest information of cheesechain or transactions depending on our action. It is important to note however that the User interface is not reactive to these changes and the applicable buttons need to be clicked to reflect these changes made by other peers
+After mining is complete or transactions are created, a broadcast is made to other connected peers to ensure that they have the newest information of cheesechain or transactions depending on our action. It is important to note however that the User interface is not reactive to these changes and the applicable buttons need to be clicked to reflect these changes made by other peers  
+
+## EXTRAS:  
+
+* Unit tests were written for testing different functional units of the system necessary for proper functioning of the project such as hashing and other helper functions, etc
+* These tests are found under the custom_tests folder
+* FOR THE CHEESE_NETWORK_TESTS TO RUN COMPLETELY, YOU NEED TO HAVE THE TRACKER RUNNING
+* To run the tests files, it is best to use environments such as pycharm and run the file (using the IDE run button). This will help prevent python loadmodule errors when running from command line
 
 ## References:
 

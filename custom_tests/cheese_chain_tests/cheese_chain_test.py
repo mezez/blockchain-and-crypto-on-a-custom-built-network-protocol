@@ -6,8 +6,9 @@ from transaction import Transaction
 from collections import OrderedDict
 from wallet import Wallet
 
+
 class CheeseChainTest(unittest.TestCase):
-    #transaction.py
+    # transaction.py
     def test_to_ordered_dictionary(self):
         recipient = "30819f300d06092a818d6c99090203010001"
         sender = "CHEESECHAIN REWARD SYSTEM"
@@ -17,7 +18,7 @@ class CheeseChainTest(unittest.TestCase):
         result = Transaction.to_ordered_dictionary(sample_transaction)
         self.assertEqual(type(result), OrderedDict)
 
-    #wallet.py
+    # wallet.py
     def test_create_keys(self):
         sample_wallet = Wallet(1)
         try:
@@ -25,7 +26,6 @@ class CheeseChainTest(unittest.TestCase):
             self.assertEqual(True, True)
         except:
             self.fail("Exception in connect_to_tracker()")
-
 
     def test_save_keys(self):
         sample_wallet = Wallet(1)
@@ -54,10 +54,9 @@ class CheeseChainTest(unittest.TestCase):
         result = sample_wallet.sign_transaction(sender, recipient, amount)
         self.assertEqual(type(result), str)
 
-
-    #def test_make_string_length_even(self):
-        #return True
-    #CheeseChain
+    # def test_make_string_length_even(self):
+    # return True
+    # CheeseChain
     def test_get_chain(self):
         public_key = "30819f300d06092a864886f70d010101050003818d0030818902818100d7dcb93709aff291b10c3634276aa53f7912749e269f9da7e906d07b1de590f0486a52bc0ba60cc9ad2a6126324f021a670aec0b5da311859f875749122becd63a4053ef366764816c0337b61e9dc7b4e009dd97dc41cc66861c488552a70c26b02a10076ae26a5f17e67f4b8e0078d6b4a73df0f713cf77267c34bb94564c310203010001"
         node_id = 1
@@ -81,7 +80,6 @@ class CheeseChainTest(unittest.TestCase):
             self.assertEqual(True, True)
         except:
             print("Exception!")
-
 
     def test_save_data(self):
         public_key = "30819f300d06092a864886f70d010101050003818d0030818902818100d7dcb93709aff291b10c3634276aa53f7912749e269f9da7e906d07b1de590f0486a52bc0ba60cc9ad2a6126324f021a670aec0b5da311859f875749122becd63a4053ef366764816c0337b61e9dc7b4e009dd97dc41cc66861c488552a70c26b02a10076ae26a5f17e67f4b8e0078d6b4a73df0f713cf77267c34bb94564c310203010001"
@@ -111,7 +109,6 @@ class CheeseChainTest(unittest.TestCase):
             self.assertEqual(balance, None)
         self.assertEqual(type(balance), int)
 
-
     def test_get_last_cheese_chain_value(self):
         public_key = "30819f300d06092a864886f70d010101050003818d0030818902818100d7dcb93709aff291b10c3634276aa53f7912749e269f9da7e906d07b1de590f0486a52bc0ba60cc9ad2a6126324f021a670aec0b5da311859f875749122becd63a4053ef366764816c0337b61e9dc7b4e009dd97dc41cc66861c488552a70c26b02a10076ae26a5f17e67f4b8e0078d6b4a73df0f713cf77267c34bb94564c310203010001"
         node_id = 1
@@ -137,7 +134,6 @@ class CheeseChainTest(unittest.TestCase):
 
         result = sample_chain.transaction_exists_in_cheesechain(chain_dictionary, recipient, sender, signature, amount)
         self.assertEqual(type(result), bool)
-
 
     def test_remove_already_added_transactions(self):
         public_key = "30819f300d06092a864886f70d010101050003818d0030818902818100d7dcb93709aff291b10c3634276aa53f7912749e269f9da7e906d07b1de590f0486a52bc0ba60cc9ad2a6126324f021a670aec0b5da311859f875749122becd63a4053ef366764816c0337b61e9dc7b4e009dd97dc41cc66861c488552a70c26b02a10076ae26a5f17e67f4b8e0078d6b4a73df0f713cf77267c34bb94564c310203010001"
@@ -165,13 +161,13 @@ class CheeseChainTest(unittest.TestCase):
     def test_mine_cheese(self):
         public_key = "30819f300d06092a864886f70d010101050003818d0030818902818100d7dcb93709aff291b10c3634276aa53f7912749e269f9da7e906d07b1de590f0486a52bc0ba60cc9ad2a6126324f021a670aec0b5da311859f875749122becd63a4053ef366764816c0337b61e9dc7b4e009dd97dc41cc66861c488552a70c26b02a10076ae26a5f17e67f4b8e0078d6b4a73df0f713cf77267c34bb94564c310203010001"
         node_id = 0
-        chain_instance = Cheesechain(public_key, node_id) #pass public_key node_id
+        chain_instance = Cheesechain(public_key, node_id)  # pass public_key node_id
         result = Cheesechain.mine_cheese(chain_instance)
 
-        if result==None:
+        if result == None:
             self.assertEqual(result, None)
         self.assertEqual(type(result), Cheese)
 
+
 if __name__ == '__main__':
     unittest.main()
-
