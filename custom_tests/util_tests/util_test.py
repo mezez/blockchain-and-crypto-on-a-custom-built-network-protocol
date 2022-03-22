@@ -53,7 +53,7 @@ class UtilTest(unittest.TestCase):
         print(cheese_type)
         self.assertEqual(result_type, cheese_type)
 
-    def test_convert_transaction_object_to_dictionary(self):
+    #def test_convert_transaction_object_to_dictionary(self):
         # Need a transaction object
         # Need a transaction dict
         # compare both types
@@ -61,23 +61,23 @@ class UtilTest(unittest.TestCase):
 
         #sample_transaction = transaction.Transaction("CHEESECHAIN REWARD SYSTEM", "30819f300d06092a86001", "rewardtransactionsignature", 10)
 
-        sample_transaction = {"sender": "CHEESECHAIN REWARD SYSTEM", "recipient": "30819f300d06092a86001", "amount": 10, "signature": "rewardtransactionsignature"}
-        transaction_type = type(sample_transaction)
+        #sample_transaction = {"sender": "CHEESECHAIN REWARD SYSTEM", "recipient": "30819f300d06092a86001", "amount": 10, "signature": "rewardtransactionsignature"}
+        #transaction_type = type(sample_transaction)
 
-        print(transaction_type)
-        result = utils.GeneralUtils.convert_transaction_object_to_dictionary(sample_transaction)
-        result_type = type(result)
-        if result['sender'] == "":
-            self.fail("Sender can not be null")
-        if result['recipient'] == "":
-            self.fail("Recipient can not be null")
-        if result['amount'] == "":
-            self.fail("Amount can not be null")
-        if result['signature'] == "":
-            self.fail("Signature can not be null")
+        #print(transaction_type)
+        #result = utils.GeneralUtils.convert_transaction_object_to_dictionary(sample_transaction)
+       # result_type = type(result)
+       # if result['sender'] == "":
+       #     self.fail("Sender can not be null")
+       # if result['recipient'] == "":
+       #     self.fail("Recipient can not be null")
+       # if result['amount'] == "":
+       #     self.fail("Amount can not be null")
+       # if result['signature'] == "":
+       #     self.fail("Signature can not be null")
 
-        self.assertNotEqual(result_type, None)
-        self.assertEqual(result_type, transaction_type)
+        #self.assertNotEqual(result_type, None)
+        #self.assertEqual(result_type, transaction_type)
 
     def test_valid_proof(self):
         sample_cheese = Cheese(1, "589aabe32e398b6b8e3eab39ebdd3976b657dbdf8562251af0b04d2c6d1d6e0c", [{"sender": "CHEESECHAIN REWARD SYSTEM", "recipient": "30819f300d06092a818d6c99090203010001", "amount": 10, "signature": "rewardtransactionsignature"}], 6, 1647429844.220142)
@@ -121,3 +121,5 @@ class UtilTest(unittest.TestCase):
         ]
         return formatted_tx
 
+if __name__ == '__main__':
+    unittest.main()
