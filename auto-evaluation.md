@@ -46,30 +46,30 @@ Team leader: Chimezirim Victor EKEMAM
 
 | Group members name(Developers) | Time Spent (Hours) | Parts |
 
-| Chimezirim Victor EKEMAM | | Cheesechain Design and Implementation/GUI, Network Protocol/Tracker & Peer, Integration Testing |
-| Ignas BARAKAUSKAS | | Cheesechain Debugging and Modifications, Integration Testing, Documentation (Readme.md)|
-| Soumya KUMBAR | | Cheesechain Debugging and Modification Unit Testing implementation, Integration Testing |
-| Sara Assefa ALEMAYEHU | | Cheesechain Debugging and Modification, Documentation (Auto Evaluation,Retrospective), Integration Testing |
+| Chimezirim Victor EKEMAM |~54| Cheesechain Design and Implementation/GUI, Network Protocol/Tracker & Peer, Integration Testing |
+| Ignas BARAKAUSKAS |~40| Cheesechain Debugging and Modifications, Integration Testing, Documentation (Readme.md)|
+| Soumya KUMBAR |~40| Cheesechain Debugging and Modification Unit Testing implementation, Integration Testing |
+| Sara Assefa ALEMAYEHU |~40| Cheesechain Debugging and Modification, Documentation (Auto Evaluation,Retrospective), Integration Testing |
 
 **Good Development Practices we followed and an evaluation**
 
 We followed a product roadmap which is initialised in very beginning of our project with milestones for each week to fulfil. We implemented and tested all the features we defined above according to the project description and our objectives. We tried to stick to an MVC architecture and an object-oriented approach to building our system. This enabled us make for code readability, separation of concerns, code reusability etc. We also maintained a dev branch for keeping our most stable code version for testing before merging to main. Other local tasks by team members where done on different branches before being merged to dev
 
-**Week 1 and 2 (January 21-27):**
+**Week 1 (February 2-9):**
 
 - Initial Discussions, Idea sharing and Validation
   We had meetings during this week to discuss and understand the project clearly. Everyone got the proper understanding about what is going to be implemented in upcoming weeks and what will be our product finally.
 
 * conduct a proper retrospective for this sprint.
 
-**Week 3 (January 28- February 4):**
+**Week 2 & 3 (February 9-23):**
 
 - System and protocol design
   We did our first draft design of system architecture and protocol. We had meetings with our meta-group members(3 different groups). Different groups came up with their protocol design. We discussed and tried to reconcile the differences in the protocols (mostly a case of differences in nomenclature and presentation at the time). We finalised the detailed design of the system, to submit the protocol.md file on 15/02/2022.
 
 * conduct a proper retrospective for this sprint.
 
-**Week 4 and 5 (February 5 – February 19):**
+**Week 4 and 5 (February 23 – March 9):**
 
 - Implementation phase
   Group members individual or collaboratively tried to progressively implement the different modules of the project. We started with the cheesechain part, then to the protocol and back to the cheesechain. This was followed by implementation of unit tests and integration testing. In this implementation phase we tried to follow a good working practice e.g:
@@ -83,7 +83,7 @@ We followed a product roadmap which is initialised in very beginning of our proj
 * Error handling
 * conduct a proper retrospective for this sprint
 
-**Week 6 (February 20- February 27):**
+**Week 6 (March 9-16):**
 
 - Testing  
   We did testing together and noticed some necessary modifications and improvements needed and tried to implement them
@@ -93,7 +93,7 @@ We followed a product roadmap which is initialised in very beginning of our proj
   - Implementation and running of unit test suites
 * conduct a retrospective for this sprint.
 
-**Week 7 (February 28- March 7):**
+**Week 7 (March 16-22):**
 
 - Testing and Documentation
   We performed testing in this week also and did some modifications. Complete documentation.
