@@ -41,7 +41,9 @@ If you already have a wallet you need to press "Load Wallet" button. After that 
 
 When you have your wallet ready you need to load the cheesechain by pressing "Load Cheesechain" button. Afterwards, you can mine cheeses by pressing "Mine Coins" button. Or transfer your cheeses to other people by providing other persons public key in "Recipient key" field and providing the amount of cheeses you want to transfer. It will create open transaction which you can be seen in "Open Transactions" tab and pressing "Load Transactions" button. For transaction to be fulfilled, it must be mined.  
 
-NOTE: AFTER OTHER PEERS ARE CONNECTED ON THE NETWORK, YOU MAY NEED TO (MANUALLY) DISCONNECT AND RECONNECT THE FIRST PEER ON THE NETWORK, ESPECIALLY IF UPDATING CHEESECHAIN OR OPEN TRANSACTIONS FROM OTHER PEERS DOES NOT WORK.
+NOTE: 
+* AFTER OTHER PEERS ARE CONNECTED ON THE NETWORK, YOU MAY NEED TO (MANUALLY) DISCONNECT AND RECONNECT THE FIRST PEER ON THE NETWORK, ESPECIALLY IF UPDATING CHEESECHAIN OR OPEN TRANSACTIONS FROM OTHER PEERS DOES NOT WORK.
+* LOADING CHEESECHAIN OR OPEN TRANSACTIONS MAY TAKE LONG SOMETIMES, DEPENDING ON NETWORK SPEED, COMPUTING TIME FOR PROOF OF WORK AND VERIFICATIONS. YOU CAN MONITOR THE STATUS OF SUCH REQUESTS ON THE NETWORK TAB OF YOUR DEVELOPER TOOLS
 
 ## Architecture description:
 
