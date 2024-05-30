@@ -2,7 +2,7 @@
 
 ## Subject description:
 
-Our task is to implement a blockchain peer to peer system inspired by Bitcoin, essentially, a cryptocurrency, cheesecoins running on a cheesechain (blockchain). Additionally, the interconnection between the peers in the system was to be done via a custom designed and built network protocol. The system comprises a tracker which keeps information of peers currently connected to the network and peer which keeps a copy of a cheesechain as well as performs a transaction, mines a cheese and interacts with other peers in the network.
+The idea of this project is to implement a blockchain peer to peer system inspired by Bitcoin, essentially, a cryptocurrency, cheesecoins running on a cheesechain (blockchain). Additionally, the interconnection between the peers in the system was to be done via a custom designed and built network protocol. The system comprises a tracker which keeps information of peers currently connected to the network and peer which keeps a copy of a cheesechain as well as performs a transaction, mines a cheese and interacts with other peers in the network.
 
 Our peer to peer system should work either as multiple instances on the same device or on different computers on a network. These peers should be able to communicate with each other and exchange information between each other without central server.
 
